@@ -1,0 +1,203 @@
+{
+  "app_name": "OpenHarmony File Browser",
+  "app_version": "v0.1.0",
+
+  "menu": {
+    "file": "File",
+    "view": "View",
+    "help": "Help",
+    "refresh_devices": "Refresh Devices",
+    "exit": "Exit",
+    "about": "About",
+    "theme": "Theme",
+    "theme_tooltip": "Toggle Light/Dark Theme",
+    "language": "Language",
+    "language_tooltip": "Toggle Chinese/English"
+  },
+
+  "toolbar": {
+    "device": "Device:",
+    "refresh_devices": "Refresh Devices",
+    "refresh": "Refresh",
+    "refresh_tooltip": "Refresh current directory (F5)",
+    "new_folder": "New Folder",
+    "new_folder_tooltip": "Create new folder",
+    "rename": "Rename",
+    "rename_tooltip": "Rename selected file/folder",
+    "delete": "Delete",
+    "delete_tooltip": "Delete selected items",
+    "upload": "Upload",
+    "upload_tooltip": "Upload files to device",
+    "download": "Download",
+    "download_tooltip": "Download selected files from device"
+  },
+
+  "status": {
+    "no_device": "No device connected",
+    "connected": "Connected: {device_name}",
+    "initializing": "Initializing HDC...",
+    "scanning": "Scanning devices...",
+    "found_devices": "Found {count} devices",
+    "found_devices_connecting": "Found {count} devices, connecting...",
+    "no_devices_found": "No devices found. Connect a device or use wireless.",
+    "no_devices_found_short": "No devices found",
+    "scan_error": "Error scanning devices: {e}",
+    "items": "{count} items",
+    "current_path": "Current: {path}",
+    "refreshed": "Refreshed: {path}"
+  },
+
+  "dialogs": {
+    "upload_title": "Upload",
+    "upload_text": "Choose what to upload:",
+    "upload_files": "Select Files - choose multiple files",
+    "upload_folder": "Select Folder - choose one folder",
+    "upload_tip": "Drag & drop supports mixing files and folders!",
+    "select_files": "Select Files",
+    "select_folder": "Select Folder",
+    "cancel": "Cancel",
+
+    "select_files_title": "Select Files to Upload",
+    "select_folder_title": "Select Folder to Upload",
+    "all_files": "All Files (*.*)",
+    "select_save_dir": "Select Save Directory",
+
+    "rename_title": "Rename",
+    "rename_text": "Rename '{name}'",
+    "rename_new_name": "New name:",
+
+    "create_folder_title": "Create Folder",
+    "create_folder_text": "Create a new folder",
+    "create_folder_name": "Name:",
+    "folder_name_placeholder": "Folder name",
+
+    "delete_title": "Confirm Delete",
+    "delete_file": "Are you sure you want to delete this file?",
+    "delete_folder": "Are you sure you want to delete this folder?",
+    "delete_warning": "Warning: This will delete all contents inside the folder!",
+    "delete_confirm": "Delete {count} selected items?",
+    "delete_items_list": "Items:",
+    "delete_more_items": "... and {count} more",
+
+    "error_title": "Error",
+    "no_device": "No device connected",
+    "no_files_selected": "No files selected",
+    "no_device_or_file": "No device/file selected",
+    "folder_name_empty": "Folder name cannot be empty",
+    "name_empty": "Name cannot be empty",
+    "invalid_path": "Invalid Path",
+    "invalid_path_msg": "Invalid path: {path}",
+    "cannot_preview": "Cannot Preview",
+    "cannot_preview_msg": "This file cannot be previewed.\n\nFile: {name}\nSupported formats:\n• Images: PNG, JPG, GIF, BMP, WEBP\n• Videos: MP4, AVI, MKV, MOV, WMV, FLV",
+    "upload_failed": "Failed to start upload: {error}",
+    "download_failed": "Failed to start download: {error}",
+    "delete_failed": "Failed to delete: {error}",
+    "rename_failed": "Failed to rename: {error}",
+    "create_folder_failed": "Failed to create folder: {error}",
+
+    "success_title": "Success",
+    "folder_created": "Folder '{name}' created",
+    "renamed_to": "Renamed to '{name}'",
+    "deleted_items": "Deleted {count} items",
+
+    "about_title": "About OpenHarmony File Browser",
+    "about_text": "<h3>{app_name}</h3><p>Version: {version}</p><p>A cross-platform file browser for OpenHarmony/HarmonyOS devices.</p><p>License: Apache 2.0</p>",
+
+    "hdc_not_found": "HDC Tool Not Found",
+    "hdc_not_found_text": "Failed to initialize HDC wrapper:\n{error}\n\nPlease ensure HDC tool is placed in the correct directory."
+  },
+
+  "file_list": {
+    "name": "Name",
+    "size": "Size",
+    "modified": "Modified",
+    "type": "Type",
+    "directory": "Directory",
+    "dir_placeholder": "<DIR>",
+    "empty_text": "No files in this directory",
+    "loading": "Loading directory...",
+    "error": "Error: {message}"
+  },
+
+  "file_tree": {
+    "directories": "Directories",
+    "loading": "Loading..."
+  },
+
+  "file_types": {
+    "folder": "folder",
+    "file": "file",
+    "image": "image",
+    "video": "video",
+    "music": "music",
+    "document": "document",
+    "archive": "archive",
+    "code": "code",
+    "unknown": "unknown"
+  },
+
+  "path_bar": {
+    "select_all": "Select All",
+    "deselect_all": "Deselect All",
+    "go_home": "Go to root directory (/)",
+    "enter_path": "Enter path...",
+    "toggle_edit": "Toggle path edit mode"
+  },
+
+  "transfer": {
+    "title": "File Transfer",
+    "transferring": "Transferring files...",
+    "completed_title": "Transfer completed",
+    "status": "{completed}/{total} completed",
+    "total": "Total: {size}",
+    "speed": "Speed: {speed}/s",
+    "cancel_all": "Cancel All",
+    "close": "Close",
+    "file": "File",
+    "direction": "Direction",
+    "progress": "Progress",
+    "size": "Size",
+    "speed_col": "Speed",
+    "upload": "Upload",
+    "download": "Download",
+    "complete": "Complete",
+    "failed": "Failed: {error}",
+    "pending": "Pending"
+  },
+
+  "preview": {
+    "title": "File Preview",
+    "preview_title": "Preview: {name}",
+    "no_file": "No file",
+    "bytes": "{size} bytes",
+    "video_file": "Video File",
+    "play_video": "Play Video",
+    "play_tooltip": "Open with system video player",
+    "zoom_in": "Zoom In (+)",
+    "zoom_out": "Zoom Out (-)",
+    "reset": "Reset (100%)",
+    "fit_window": "Fit Window",
+    "close": "Close",
+    "handler_not_init": "Preview handler not initialized",
+    "download_failed": "Failed to download file for preview",
+    "open_image_failed": "Failed to open image",
+    "preview_image_error": "Failed to preview image: {error}",
+    "open_video_failed": "Failed to open video player",
+    "video_info": "{name}\nSize: {size} bytes\n\nClick 'Play Video' to open in system player"
+  },
+
+  "device": {
+    "label": "Device:",
+    "refresh_tooltip": "Refresh device list",
+    "no_device": "No device selected",
+    "checkmark": "✓ "
+  },
+
+  "buttons": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close"
+  }
+}

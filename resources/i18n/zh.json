@@ -1,0 +1,203 @@
+{
+  "app_name": "OpenHarmony 文件浏览器",
+  "app_version": "v0.1.0",
+
+  "menu": {
+    "file": "文件",
+    "view": "视图",
+    "help": "帮助",
+    "refresh_devices": "刷新设备",
+    "exit": "退出",
+    "about": "关于",
+    "theme": "主题",
+    "theme_tooltip": "切换亮色/暗色主题",
+    "language": "语言",
+    "language_tooltip": "切换中文/英文"
+  },
+
+  "toolbar": {
+    "device": "设备:",
+    "refresh_devices": "刷新设备",
+    "refresh": "刷新",
+    "refresh_tooltip": "刷新当前目录 (F5)",
+    "new_folder": "新建文件夹",
+    "new_folder_tooltip": "创建新文件夹",
+    "rename": "重命名",
+    "rename_tooltip": "重命名选中的文件/文件夹",
+    "delete": "删除",
+    "delete_tooltip": "删除选中的项目",
+    "upload": "上传",
+    "upload_tooltip": "上传文件到设备",
+    "download": "下载",
+    "download_tooltip": "从设备下载选中的文件"
+  },
+
+  "status": {
+    "no_device": "未连接设备",
+    "connected": "已连接: {device_name}",
+    "initializing": "初始化 HDC...",
+    "scanning": "扫描设备...",
+    "found_devices": "找到 {count} 个设备",
+    "found_devices_connecting": "找到 {count} 个设备，正在连接...",
+    "no_devices_found": "未找到设备。请连接设备或使用无线连接。",
+    "no_devices_found_short": "未找到设备",
+    "scan_error": "扫描设备出错: {e}",
+    "items": "{count} 项",
+    "current_path": "当前: {path}",
+    "refreshed": "已刷新: {path}"
+  },
+
+  "dialogs": {
+    "upload_title": "上传",
+    "upload_text": "选择上传内容:",
+    "upload_files": "选择文件 - 选择多个文件",
+    "upload_folder": "选择文件夹 - 选择一个文件夹",
+    "upload_tip": "拖拽上传支持混合选择文件和文件夹！",
+    "select_files": "选择文件",
+    "select_folder": "选择文件夹",
+    "cancel": "取消",
+
+    "select_files_title": "选择要上传的文件",
+    "select_folder_title": "选择要上传的文件夹",
+    "all_files": "所有文件 (*.*)",
+    "select_save_dir": "选择保存目录",
+
+    "rename_title": "重命名",
+    "rename_text": "重命名 '{name}'",
+    "rename_new_name": "新名称:",
+
+    "create_folder_title": "创建文件夹",
+    "create_folder_text": "创建新文件夹",
+    "create_folder_name": "名称:",
+    "folder_name_placeholder": "文件夹名称",
+
+    "delete_title": "确认删除",
+    "delete_file": "确定要删除这个文件吗？",
+    "delete_folder": "确定要删除这个文件夹吗？",
+    "delete_warning": "警告：这将删除文件夹内的所有内容！",
+    "delete_confirm": "删除选中的 {count} 个项目？",
+    "delete_items_list": "项目:",
+    "delete_more_items": "... 还有 {count} 个",
+
+    "error_title": "错误",
+    "no_device": "未连接设备",
+    "no_files_selected": "未选中文件",
+    "no_device_or_file": "未选择设备/文件",
+    "folder_name_empty": "文件夹名称不能为空",
+    "name_empty": "名称不能为空",
+    "invalid_path": "无效路径",
+    "invalid_path_msg": "无效路径: {path}",
+    "cannot_preview": "无法预览",
+    "cannot_preview_msg": "此文件无法预览。\n\n文件: {name}\n支持的格式:\n• 图片: PNG, JPG, GIF, BMP, WEBP\n• 视频: MP4, AVI, MKV, MOV, WMV, FLV",
+    "upload_failed": "启动上传失败: {error}",
+    "download_failed": "启动下载失败: {error}",
+    "delete_failed": "删除失败: {error}",
+    "rename_failed": "重命名失败: {error}",
+    "create_folder_failed": "创建文件夹失败: {error}",
+
+    "success_title": "成功",
+    "folder_created": "文件夹 '{name}' 已创建",
+    "renamed_to": "已重命名为 '{name}'",
+    "deleted_items": "已删除 {count} 个项目",
+
+    "about_title": "关于 OpenHarmony 文件浏览器",
+    "about_text": "<h3>{app_name}</h3><p>版本: {version}</p><p>跨平台的 OpenHarmony/HarmonyOS 设备文件浏览器。</p><p>许可证: Apache 2.0</p>",
+
+    "hdc_not_found": "未找到 HDC 工具",
+    "hdc_not_found_text": "初始化 HDC 包装器失败:\n{error}\n\n请确保 HDC 工具已放置在正确的目录中。"
+  },
+
+  "file_list": {
+    "name": "名称",
+    "size": "大小",
+    "modified": "修改时间",
+    "type": "类型",
+    "directory": "目录",
+    "dir_placeholder": "<目录>",
+    "empty_text": "此目录中没有文件",
+    "loading": "正在加载目录...",
+    "error": "错误: {message}"
+  },
+
+  "file_tree": {
+    "directories": "目录",
+    "loading": "加载中..."
+  },
+
+  "file_types": {
+    "folder": "文件夹",
+    "file": "文件",
+    "image": "图片",
+    "video": "视频",
+    "music": "音乐",
+    "document": "文档",
+    "archive": "压缩包",
+    "code": "代码",
+    "unknown": "未知"
+  },
+
+  "path_bar": {
+    "select_all": "全选",
+    "deselect_all": "取消全选",
+    "go_home": "跳转到根目录 (/)",
+    "enter_path": "输入路径...",
+    "toggle_edit": "切换路径编辑模式"
+  },
+
+  "transfer": {
+    "title": "文件传输",
+    "transferring": "正在传输文件...",
+    "completed_title": "传输完成",
+    "status": "{completed}/{total} 已完成",
+    "total": "总计: {size}",
+    "speed": "速度: {speed}/s",
+    "cancel_all": "全部取消",
+    "close": "关闭",
+    "file": "文件",
+    "direction": "方向",
+    "progress": "进度",
+    "size": "大小",
+    "speed_col": "速度",
+    "upload": "上传",
+    "download": "下载",
+    "complete": "完成",
+    "failed": "失败: {error}",
+    "pending": "等待中"
+  },
+
+  "preview": {
+    "title": "文件预览",
+    "preview_title": "预览: {name}",
+    "no_file": "无文件",
+    "bytes": "{size} 字节",
+    "video_file": "视频文件",
+    "play_video": "播放视频",
+    "play_tooltip": "使用系统视频播放器打开",
+    "zoom_in": "放大 (+)",
+    "zoom_out": "缩小 (-)",
+    "reset": "重置 (100%)",
+    "fit_window": "适应窗口",
+    "close": "关闭",
+    "handler_not_init": "预览处理器未初始化",
+    "download_failed": "下载预览文件失败",
+    "open_image_failed": "打开图片失败",
+    "preview_image_error": "预览图片失败: {error}",
+    "open_video_failed": "打开视频播放器失败",
+    "video_info": "{name}\n大小: {size} 字节\n\n点击'播放视频'使用系统播放器打开"
+  },
+
+  "device": {
+    "label": "设备:",
+    "refresh_tooltip": "刷新设备列表",
+    "no_device": "未选择设备",
+    "checkmark": "✓ "
+  },
+
+  "buttons": {
+    "ok": "确定",
+    "cancel": "取消",
+    "yes": "是",
+    "no": "否",
+    "close": "关闭"
+  }
+}
