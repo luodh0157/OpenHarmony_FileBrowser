@@ -9,9 +9,27 @@ from pathlib import Path
 from .hdc_wrapper import HDCWrapper, HDCError
 from ..models.file_info import FileInfo, FileType
 from ..utils.logger import get_logger
+from ..utils.directory_cache import DirectoryCache
 
 
 logger = get_logger(__name__)
+
+# Shared directory cache per device (class-level)
+_device_caches: dict = {}
+
+
+def _get_device_cache(device_id: str) -> DirectoryCache:
+    """Get or create directory cache for a device."""
+    if device_id not in _device_caches:
+        _device_caches[device_id] = DirectoryCache(ttl_seconds=30)
+    return _device_caches[device_id]
+
+
+def clear_device_cache(device_id: str) -> None:
+    """Clear directory cache for a device."""
+    if device_id in _device_caches:
+        _device_caches[device_id].clear()
+        del _device_caches[device_id]
 
 
 class FileOperations:
@@ -35,16 +53,18 @@ class FileOperations:
         """
         self.hdc = hdc
         self.device_id = device_id
+        self.cache = _get_device_cache(device_id)
         
         logger.info(f"FileOperations initialized for device: {device_id}")
     
-    def list_directory(self, path: str, show_hidden: bool = False) -> List[FileInfo]:
+    def list_directory(self, path: str, show_hidden: bool = False, use_cache: bool = True) -> List[FileInfo]:
         """
         List files in a directory.
         
         Args:
             path: Directory path
             show_hidden: Whether to show hidden files
+            use_cache: Whether to use cached results (default True)
         
         Returns:
             List of FileInfo objects
@@ -54,8 +74,18 @@ class FileOperations:
         """
         logger.debug(f"Listing directory: {path}")
         
+        # Try cache first
+        if use_cache and not show_hidden:
+            cached = self.cache.get(path)
+            if cached is not None:
+                return cached
+        
         try:
             files = self.hdc.shell_ls(self.device_id, path, show_hidden)
+            
+            # Cache the result
+            if not show_hidden:
+                self.cache.put(path, files)
             
             logger.info(f"Found {len(files)} items in {path}")
             return files
@@ -107,6 +137,9 @@ class FileOperations:
         try:
             self.hdc.shell_mkdir(self.device_id, path)
             
+            # Invalidate parent directory cache
+            self.cache.invalidate_parent(path)
+            
             logger.info(f"Directory created: {path}")
             return True
         
@@ -133,6 +166,12 @@ class FileOperations:
         try:
             self.hdc.shell_rm(self.device_id, path, recursive=recursive)
             
+            # Invalidate the deleted path and parent directory cache
+            self.cache.invalidate(path)
+            self.cache.invalidate_parent(path)
+            if recursive:
+                self.cache.clear()  # Conservative: clear all on recursive delete
+            
             logger.info(f"Deleted: {path}")
             return True
         
@@ -158,6 +197,12 @@ class FileOperations:
         
         try:
             self.hdc.shell_mv(self.device_id, old_path, new_path)
+            
+            # Invalidate both old and new parent directory caches
+            self.cache.invalidate(old_path)
+            self.cache.invalidate(new_path)
+            self.cache.invalidate_parent(old_path)
+            self.cache.invalidate_parent(new_path)
             
             logger.info(f"Renamed: {old_path} -> {new_path}")
             return True
@@ -306,3 +351,7 @@ class FileOperations:
         result = "/" + "/".join(normalized)
         
         return result if result else "/"
+    
+    def clear_cache(self) -> None:
+        """Clear the directory cache for this device."""
+        self.cache.clear()

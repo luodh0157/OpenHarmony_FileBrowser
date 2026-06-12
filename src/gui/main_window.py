@@ -12,13 +12,8 @@ from PySide6.QtCore import Qt, Signal, QSize, QTimer
 from PySide6.QtGui import QAction, QKeySequence, QStandardItemModel, QStandardItem, QColor, QIcon, QPixmap, QPainter, QPalette
 
 from src.config import config
-from src.core.device_manager import DeviceManager
 from src.utils.logger import get_logger
-from src.utils.icon_manager import icon_manager
 from src.utils.language_manager import language_manager
-from src.gui.widgets.file_browser import FileBrowserWidget
-from src.gui.widgets.dialogs import show_warning_dialog
-from src.gui.styles.theme_manager import ThemeManager
 
 
 logger = get_logger(__name__)
@@ -53,33 +48,74 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}")
-        self.setMinimumSize(config.window_min_width, config.window_min_height)
-        self.resize(config.window_width, config.window_height)
-        
-        self.device_manager: Optional[DeviceManager] = None
+        self.device_manager = None
         self.current_device_id: Optional[str] = None
-        self.theme_manager: Optional[ThemeManager] = None
+        self.theme_manager = None
+        self.file_browser = None
+        self._loading_widget = None
         
         # Menu actions (for language update)
         self.theme_action: Optional[QAction] = None
         self.language_action: Optional[QAction] = None
         
-        # Initialize UI first (fast)
-        self._init_ui()
+        # Set window properties (minimal, no heavy widget creation yet)
+        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}")
+        self.setMinimumSize(config.window_min_width, config.window_min_height)
+        self.resize(config.window_width, config.window_height)
+        
+        # Apply stylesheet BEFORE creating widget tree (much faster)
         self._init_theme_manager()
         self.theme_manager.apply_stylesheet()
         
-        # Show window immediately before device initialization
+        # Show loading placeholder
+        self._show_loading_placeholder()
+        
+        # Show window immediately with loading indicator
         self.show()
         
-        # Delay device manager initialization to improve startup speed
-        QTimer.singleShot(100, self._init_device_manager_later)
+        # Defer heavy widget creation to event loop (non-blocking)
+        QTimer.singleShot(50, self._init_ui_deferred)
         
         logger.info("Main window initialized and shown")
     
+    def _show_loading_placeholder(self):
+        """Show a clean loading placeholder while deferring heavy UI init."""
+        from PySide6.QtCore import Qt
+        from PySide6.QtWidgets import QLabel
+        
+        central = QWidget()
+        self.setCentralWidget(central)
+        layout = QVBoxLayout(central)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        self._loading_widget = QLabel(language_manager.tr('status.initializing'))
+        self._loading_widget.setAlignment(Qt.AlignCenter)
+        self._loading_widget.setStyleSheet(
+            "color: #888; font-size: 18px; padding: 60px;"
+        )
+        layout.addWidget(self._loading_widget)
+    
+    def _init_ui_deferred(self):
+        """Initialize heavy UI components after window is visible."""
+        self._init_ui()
+        self._create_status_bar()
+        
+        # Remove loading placeholder
+        if self._loading_widget:
+            self._loading_widget.setParent(None)
+            self._loading_widget = None
+        
+        # Now defer device initialization
+        QTimer.singleShot(100, self._init_device_manager_later)
+        
+        logger.info("Deferred UI initialization complete")
+    
     def _init_ui(self):
-        """Initialize UI with toolbar."""
+        """Initialize UI with toolbar (called deferred after window is visible)."""
+        from src.utils.icon_manager import icon_manager
+        from src.gui.widgets.file_browser import FileBrowserWidget
+        
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
@@ -125,10 +161,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.file_browser, stretch=1)
         
         self._create_menu_bar()
-        self._create_status_bar()
     
     def _init_theme_manager(self):
         """Initialize theme manager."""
+        from src.gui.styles.theme_manager import ThemeManager
+        
         self.theme_manager = ThemeManager(self)
         self.theme_manager.theme_changed.connect(self._on_theme_changed)
         
@@ -141,7 +178,8 @@ class MainWindow(QMainWindow):
     
     def _on_theme_changed(self, theme: str):
         """Handle theme change."""
-        # Update theme toggle button icon in menu
+        from src.utils.icon_manager import icon_manager
+        
         icon_name = 'sun' if theme == 'dark' else 'moon'
         if self.theme_action:
             self.theme_action.setIcon(icon_manager.get_icon(icon_name))
@@ -221,8 +259,9 @@ class MainWindow(QMainWindow):
     
     def _create_menu_bar(self):
         """Create menu bar."""
+        from src.utils.icon_manager import icon_manager
+        
         menubar = self.menuBar()
-        # Set bold font for menu bar
         menu_font = menubar.font()
         menu_font.setBold(True)
         menubar.setFont(menu_font)
@@ -240,7 +279,6 @@ class MainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
         
-        # View menu with Theme and Language
         view_menu = menubar.addMenu(language_manager.tr('menu.view'))
         
         self.theme_action = QAction(icon_manager.get_icon('sun'), language_manager.tr('menu.theme'), self)
@@ -307,6 +345,9 @@ class MainWindow(QMainWindow):
     
     def _init_device_manager_later(self):
         """Initialize device manager after UI is shown (delayed startup optimization)."""
+        from src.core.device_manager import DeviceManager
+        from src.gui.widgets.dialogs import show_warning_dialog
+        
         self.file_count_label.setText(language_manager.tr('status.initializing'))
         
         try:
@@ -419,16 +460,11 @@ class MainWindow(QMainWindow):
         if new_device_id and self.device_manager:
             device = self.device_manager.get_device(new_device_id)
             if device:
-                # Update status bar immediately
                 self.update_device_status(new_device_id, device.display_name)
-                
-                # Set file browser device
                 self.file_browser.set_device(new_device_id, self.device_manager.hdc)
                 self.device_selected.emit(new_device_id)
-                
                 logger.info(f"Device changed to: {device.display_name} ({new_device_id})")
             else:
-                # Device info not found, display device ID
                 self.update_device_status(new_device_id, new_device_id[:15])
                 logger.warning(f"Device info not found for: {new_device_id}")
         else:

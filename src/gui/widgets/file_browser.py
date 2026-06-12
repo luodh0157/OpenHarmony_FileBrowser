@@ -310,7 +310,10 @@ class FileBrowserWidget(QWidget):
         self.preview_window.show()
     
     def _refresh(self):
-        """Refresh current directory."""
+        """Refresh current directory (invalidate cache first)."""
+        if self.file_ops:
+            self.file_ops.cache.invalidate(self.current_path)
+        
         self.file_list.refresh()
         
         # 发射状态更新信号

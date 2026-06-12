@@ -132,9 +132,15 @@ class TestGuiIntegration:
     """Tests for GUI component integration."""
 
     def test_main_window_contains_file_browser(self, qapp):
+        from PySide6.QtWidgets import QApplication
         from src.gui.main_window import MainWindow
 
         window = MainWindow()
+        # Process events to allow deferred UI initialization
+        QApplication.processEvents()
+        import time
+        time.sleep(0.1)
+        QApplication.processEvents()
         assert window.file_browser is not None
 
     def test_file_browser_contains_sub_widgets(self, qapp):

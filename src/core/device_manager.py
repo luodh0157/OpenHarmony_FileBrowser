@@ -319,4 +319,6 @@ class DeviceManager(QObject):
     def cleanup(self):
         """Cleanup resources."""
         self.stop_monitoring()
+        if self.hdc:
+            self.hdc.cleanup()
         logger.info("Device manager cleanup completed")

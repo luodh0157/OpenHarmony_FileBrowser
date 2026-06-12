@@ -35,7 +35,7 @@
   "status": {
     "no_device": "No device connected",
     "connected": "Connected: {device_name}",
-    "initializing": "Initializing HDC...",
+    "initializing": "Initializing, please wait...",
     "scanning": "Scanning devices...",
     "found_devices": "Found {count} devices",
     "found_devices_connecting": "Found {count} devices, connecting...",

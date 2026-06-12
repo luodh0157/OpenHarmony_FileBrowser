@@ -35,7 +35,7 @@
   "status": {
     "no_device": "未连接设备",
     "connected": "已连接: {device_name}",
-    "initializing": "初始化 HDC...",
+    "initializing": "正在初始化，请稍后...",
     "scanning": "扫描设备...",
     "found_devices": "找到 {count} 个设备",
     "found_devices_connecting": "找到 {count} 个设备，正在连接...",

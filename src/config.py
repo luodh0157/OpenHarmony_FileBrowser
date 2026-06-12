@@ -92,4 +92,4 @@ class Config:
             json.dump(data, f, indent=2)
 
 
-config = Config()
+config = Config.load()

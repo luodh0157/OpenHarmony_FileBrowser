@@ -256,6 +256,9 @@ class FileListWidget(QWidget):
                 logger.debug(f"Thread object already deleted: {e}")
             self.load_thread = None
         
+        if self.file_ops:
+            self.file_ops.clear_cache()
+        
         self.device_id = None
         self.hdc = None
         self.file_ops = None

@@ -7,7 +7,7 @@ import subprocess
 import re
 import platform
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from datetime import datetime
 
 from ..models.device import DeviceInfo, DeviceStatus
@@ -51,6 +51,9 @@ class HDCWrapper:
         self.timeout = timeout
         self._verify_hdc()
         
+        # Persistent shell sessions per device: device_id -> subprocess.Popen
+        self._shell_sessions: Dict[str, subprocess.Popen] = {}
+        
         logger.info(f"HDC wrapper initialized: {self.hdc_path}")
     
     def _verify_hdc(self) -> None:
@@ -63,10 +66,119 @@ class HDCWrapper:
             raise HDCError(f"HDC path is not a file: {self.hdc_path}")
         
         try:
-            result = self._execute(["--version"], check=False)
-            logger.debug(f"HDC version: {result}")
+            result = subprocess.run(
+                [self.hdc_path, "--version"],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                timeout=5,
+                **_SUBPROCESS_KWARGS,
+            )
+            logger.debug(f"HDC version: {result.stdout.strip()}")
         except Exception as e:
             raise HDCError(f"Failed to execute HDC: {e}")
+    
+    def _get_or_create_shell_session(self, device_id: str) -> subprocess.Popen:
+        """
+        Get or create a persistent shell session for a device.
+        
+        Args:
+            device_id: Device ID
+        
+        Returns:
+            Popen object for the shell session
+        """
+        if device_id in self._shell_sessions:
+            proc = self._shell_sessions[device_id]
+            if proc.poll() is None:
+                return proc
+            else:
+                del self._shell_sessions[device_id]
+        
+        cmd = [self.hdc_path, "-t", device_id, "shell"]
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8',
+            **_SUBPROCESS_KWARGS,
+        )
+        self._shell_sessions[device_id] = proc
+        logger.debug(f"Created persistent shell session for device: {device_id}")
+        return proc
+    
+    def shell_batch(self, device_id: str, commands: List[str], timeout: Optional[int] = None) -> List[str]:
+        """
+        Execute multiple shell commands in a single session.
+        
+        Args:
+            device_id: Device ID
+            commands: List of shell commands to execute
+            timeout: Command timeout in seconds
+        
+        Returns:
+            List of command outputs (one per command)
+        """
+        import time
+        
+        proc = self._get_or_create_shell_session(device_id)
+        
+        try:
+            delimiter = "---HDC_BATCH_DELIM---"
+            batch_input = ""
+            for cmd in commands:
+                batch_input += f"{cmd}\necho {delimiter}\n"
+            
+            proc.stdin.write(batch_input)
+            proc.stdin.flush()
+            
+            timeout = timeout or self.timeout
+            outputs = []
+            current_lines = []
+            start_time = time.time()
+            
+            while True:
+                if time.time() - start_time > timeout:
+                    raise HDCError(f"Shell batch command timeout after {timeout}s")
+                
+                line = proc.stdout.readline()
+                if line:
+                    if delimiter in line:
+                        outputs.append("".join(current_lines).strip())
+                        current_lines = []
+                        if len(outputs) == len(commands):
+                            break
+                    else:
+                        current_lines.append(line)
+                else:
+                    time.sleep(0.01)
+            
+            return outputs
+        
+        except HDCError:
+            raise
+        except Exception as e:
+            if device_id in self._shell_sessions:
+                try:
+                    self._shell_sessions[device_id].kill()
+                except Exception:
+                    pass
+                del self._shell_sessions[device_id]
+            raise HDCError(f"Shell batch command failed: {e}")
+    
+    def close_shell_sessions(self) -> None:
+        """Close all persistent shell sessions."""
+        for device_id, proc in self._shell_sessions.items():
+            try:
+                proc.stdin.close()
+                proc.kill()
+                proc.wait(timeout=2)
+            except Exception:
+                pass
+        self._shell_sessions.clear()
+        logger.debug("All shell sessions closed")
     
     def _execute(
         self,
@@ -104,6 +216,7 @@ class HDCWrapper:
                 cmd,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
                 timeout=timeout or self.timeout,
                 **_SUBPROCESS_KWARGS,
             )
@@ -173,29 +286,32 @@ class HDCWrapper:
         )
         
         try:
-            model = self._execute(
-                ["shell", "param", "get", "const.product.model"],
+            # Batch 3 param queries into a single shell command
+            batch_cmd = (
+                "echo MODEL:$(param get const.product.model); "
+                "echo BRAND:$(param get const.product.brand); "
+                "echo PRODUCT:$(param get const.product.name)"
+            )
+            output = self._execute(
+                ["shell", batch_cmd],
                 device_id=device_id,
                 check=False
             )
-            if model:
-                device.model = model.strip()
             
-            brand = self._execute(
-                ["shell", "param", "get", "const.product.brand"],
-                device_id=device_id,
-                check=False
-            )
-            if brand:
-                device.brand = brand.strip()
-            
-            product = self._execute(
-                ["shell", "param", "get", "const.product.name"],
-                device_id=device_id,
-                check=False
-            )
-            if product:
-                device.product = product.strip()
+            for line in output.split("\n"):
+                line = line.strip()
+                if line.startswith("MODEL:"):
+                    val = line[6:].strip()
+                    if val:
+                        device.model = val
+                elif line.startswith("BRAND:"):
+                    val = line[6:].strip()
+                    if val:
+                        device.brand = val
+                elif line.startswith("PRODUCT:"):
+                    val = line[8:].strip()
+                    if val:
+                        device.product = val
             
         except Exception as e:
             logger.warning(f"Failed to get device details: {e}")
@@ -633,3 +749,7 @@ class HDCWrapper:
             ["shell", command],
             device_id=device_id
         )
+    
+    def cleanup(self) -> None:
+        """Cleanup resources, close persistent shell sessions."""
+        self.close_shell_sessions()

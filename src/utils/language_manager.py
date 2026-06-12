@@ -5,7 +5,7 @@
 
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import json
 from PySide6.QtCore import QObject, Signal
 
@@ -48,22 +48,30 @@ class LanguageManager(QObject):
     language_changed = Signal(str)  # 语言切换信号
     
     def __init__(self):
-        """初始化语言管理器"""
+        """初始化语言管理器（延迟加载翻译文件）"""
         super().__init__()
         
         self.current_language = config.language
         self.translations: Dict[str, Any] = {}
+        self._loaded = False
         
-        # 翻译文件路径
-        self.i18n_dir = get_resource_path("resources/i18n")
-        
-        # 加载翻译文件
+        # 翻译文件路径（延迟解析）
+        self._i18n_dir: Optional[Path] = None
+    
+    def _ensure_loaded(self):
+        """确保翻译文件已加载（懒加载）"""
+        if self._loaded:
+            return
         self.load_translations()
+        self._loaded = True
     
     def load_translations(self):
         """加载当前语言的翻译文件"""
+        if self._i18n_dir is None:
+            self._i18n_dir = get_resource_path("resources/i18n")
+        
         try:
-            translation_file = self.i18n_dir / f"{self.current_language}.json"
+            translation_file = self._i18n_dir / f"{self.current_language}.json"
             
             if translation_file.exists():
                 with open(translation_file, 'r', encoding='utf-8') as f:
@@ -75,6 +83,8 @@ class LanguageManager(QObject):
         except Exception as e:
             logger.error(f"Failed to load translations: {e}")
             self.translations = {}
+        
+        self._loaded = True
     
     def set_language(self, language: str):
         """
@@ -122,6 +132,8 @@ class LanguageManager(QObject):
         Returns:
             翻译后的文本
         """
+        self._ensure_loaded()
+        
         # 解析嵌套键
         keys = key.split('.')
         value = self.translations
