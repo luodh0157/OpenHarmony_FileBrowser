@@ -3,9 +3,27 @@
 支持亮色和暗色主题切换
 """
 
+import sys
 from pathlib import Path
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import QSize, QObject, Signal
+
+
+_resource_cache = {}
+
+def get_resource_path(relative_path: str) -> Path:
+    """Get absolute path to resource, works for dev and PyInstaller."""
+    if relative_path in _resource_cache:
+        return _resource_cache[relative_path]
+    
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).parent.parent.parent
+    
+    result = base_path / relative_path
+    _resource_cache[relative_path] = result
+    return result
 
 
 class IconManager(QObject):
@@ -25,7 +43,7 @@ class IconManager(QObject):
         self.icon_size = QSize(24, 24)  # 增大图标大小
         
         # 图标资源目录
-        self.icons_dir = Path(__file__).parent.parent.parent / "resources" / "icons"
+        self.icons_dir = get_resource_path("resources/icons")
         
         # 图标缓存
         self.icon_cache = {}

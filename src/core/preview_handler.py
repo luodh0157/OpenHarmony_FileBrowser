@@ -162,7 +162,7 @@ class PreviewHandler:
             if system == "Windows":
                 os.startfile(local_path)
             elif system == "Darwin":  # macOS
-                subprocess.run(["open", local_path], check=False)
+                subprocess.run(["open", local_path], check=False, creationflags=subprocess.CREATE_NO_WINDOW if system == "Windows" else 0)
             else:  # Linux
                 subprocess.run(["xdg-open", local_path], check=False)
             

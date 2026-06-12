@@ -38,13 +38,13 @@ class Config:
     
     def __post_init__(self):
         """Initialize default paths."""
+        app_data_dir = Path.home() / ".openharmony_filebrowser"
+        
         if self.log_dir is None:
-            self.log_dir = Path(__file__).parent.parent.parent / "logs"
+            self.log_dir = app_data_dir / "logs"
         
         if self.preview_temp_dir is None:
-            self.preview_temp_dir = (
-                Path(__file__).parent.parent / "resources" / "temp"
-            )
+            self.preview_temp_dir = app_data_dir / "temp"
     
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> "Config":

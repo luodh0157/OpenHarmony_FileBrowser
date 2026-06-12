@@ -5,6 +5,7 @@ Provides interface to communicate with OpenHarmony/HarmonyOS devices.
 
 import subprocess
 import re
+import platform
 from pathlib import Path
 from typing import List, Optional, Tuple
 from datetime import datetime
@@ -15,6 +16,10 @@ from ..utils.logger import get_logger
 
 
 logger = get_logger(__name__)
+
+# Cache subprocess creation flags
+_IS_WINDOWS = platform.system() == "Windows"
+_SUBPROCESS_KWARGS = {"creationflags": subprocess.CREATE_NO_WINDOW} if _IS_WINDOWS else {}
 
 
 class HDCError(Exception):
@@ -100,6 +105,7 @@ class HDCWrapper:
                 capture_output=True,
                 text=True,
                 timeout=timeout or self.timeout,
+                **_SUBPROCESS_KWARGS,
             )
             
             if check and result.returncode != 0:

@@ -3,6 +3,7 @@
 支持国际化，保存用户偏好
 """
 
+import sys
 from pathlib import Path
 from typing import Dict, Any
 import json
@@ -10,6 +11,23 @@ from PySide6.QtCore import QObject, Signal
 
 
 from src.utils.logger import get_logger
+
+
+_resource_cache = {}
+
+def get_resource_path(relative_path: str) -> Path:
+    """Get absolute path to resource, works for dev and PyInstaller."""
+    if relative_path in _resource_cache:
+        return _resource_cache[relative_path]
+    
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).parent.parent.parent
+    
+    result = base_path / relative_path
+    _resource_cache[relative_path] = result
+    return result
 
 
 logger = get_logger(__name__)
@@ -36,10 +54,10 @@ class LanguageManager(QObject):
         self.translations: Dict[str, Any] = {}
         
         # 翻译文件路径
-        self.i18n_dir = Path(__file__).parent.parent.parent / "resources" / "i18n"
+        self.i18n_dir = get_resource_path("resources/i18n")
         
         # 配置文件路径
-        self.config_file = Path.home() / '.opencode' / 'file_browser_config.json'
+        self.config_file = Path.home() / '.openharmony_filebrowser' / 'file_browser_config.json'
         
         # 加载用户偏好
         self.load_preference()

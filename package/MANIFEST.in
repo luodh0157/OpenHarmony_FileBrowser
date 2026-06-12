@@ -1,0 +1,4 @@
+include README.md
+include requirements.txt
+recursive-include resources *.svg *.json *.qss
+recursive-include assets *.ico *.icns *.png
