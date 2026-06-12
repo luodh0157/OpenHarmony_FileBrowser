@@ -99,7 +99,7 @@ flake8 src/
 ### 打包可执行文件
 
 ```bash
-python build.py
+python package/build.py
 ```
 
 ### 项目结构
@@ -107,8 +107,17 @@ python build.py
 ```
 OpenHarmony_FileBrowser/
 ├── main.py                          # 顶层入口点
-├── build.py                         # PyInstaller 打包脚本
-├── setup.py                         # Python 包安装配置
+├── config/                          # 配置目录
+│   ├── config.json                  # 配置文件
+│   └── logs/                        # 日志目录
+├── .gitignore                       # Git排除规则
+├── package/                         # 构建和打包脚本
+│   ├── build.py                     # PyInstaller 打包脚本
+│   ├── setup.py                     # Python 包安装配置
+│   └ README.md                      # 构建说明
+├── generate/                        # 图标生成工具
+│   ├── generate.py                  # 图标生成脚本
+│   └ README.md                      # 使用说明
 ├── requirements.txt                 # 运行时依赖
 ├── requirements-dev.txt             # 开发依赖
 ├── LICENSE                          # Apache 2.0 许可证
@@ -162,10 +171,13 @@ OpenHarmony_FileBrowser/
 │   │
 │   └── resources/                   # 静态资源
 │       ├── icons/                   # SVG 图标（浅色/深色主题）
-│       └── i18n/                    # 国际化 JSON 文件
+│       ├── i18n/                    # 国际化 JSON 文件
+│       └── styles/                  # QSS 样式表
 │
 ├── tests/                           # 测试套件
-└── logs/                            # 应用日志文件
+│   ├── unit/                        # 单元测试
+│   └ integration/                   # 集成测试
+└── package/                         # 构建和打包脚本
 ```
 
 ## 架构设计

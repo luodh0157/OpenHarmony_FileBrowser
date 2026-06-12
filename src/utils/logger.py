@@ -39,7 +39,8 @@ def get_logger(
     )
     
     if log_file is None:
-        log_dir = Path(__file__).parent.parent.parent / "logs"
+        from src.config import config
+        log_dir = config.log_dir
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file = log_dir / f"{datetime.now().strftime('%Y%m%d')}.log"
     

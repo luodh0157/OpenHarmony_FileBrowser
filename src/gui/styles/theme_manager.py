@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from src.utils.icon_manager import icon_manager
 from src.utils.logger import get_logger
+from src.config import config
 
 
 _resource_cache = {}
@@ -58,52 +59,10 @@ class ThemeManager(QObject):
         super().__init__()
         
         self.main_window = main_window
-        self.current_theme = 'light'
+        self.current_theme = config.theme
         
         # 样式文件路径
         self.styles_dir = get_resource_path("resources/styles")
-        
-        # 配置文件路径
-        self.config_file = Path.home() / '.openharmony_filebrowser' / 'file_browser_config.json'
-        
-        # 加载用户偏好
-        self.load_preference()
-    
-    def load_preference(self):
-        """
-        加载用户主题偏好
-        """
-        try:
-            if self.config_file.exists():
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                    preferred_theme = config.get('theme', 'light')
-                    if preferred_theme in ['light', 'dark']:
-                        self.current_theme = preferred_theme
-                        logger.info(f"Loaded user theme preference: {preferred_theme}")
-        except Exception as e:
-            logger.warning(f"Failed to load theme preference: {e}")
-    
-    def save_preference(self):
-        """
-        保存用户主题偏好
-        """
-        try:
-            self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            config = {}
-            if self.config_file.exists():
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-            
-            config['theme'] = self.current_theme
-            
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2)
-            
-            logger.info(f"Saved user theme preference: {self.current_theme}")
-        except Exception as e:
-            logger.error(f"Failed to save theme preference: {e}")
     
     def set_theme(self, theme: str):
         """
@@ -127,8 +86,9 @@ class ThemeManager(QObject):
         # 更新图标主题
         icon_manager.set_theme(theme)
         
-        # 保存用户偏好
-        self.save_preference()
+        # 保存到统一配置
+        config.theme = theme
+        config.save()
         
         # 发送主题切换信号
         self.theme_changed.emit(theme)

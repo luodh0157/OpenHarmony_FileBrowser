@@ -64,10 +64,11 @@ class TestConfigDefaults:
     def test_log_dir_initialized(self):
         config = Config()
         assert config.log_dir is not None
-
-    def test_preview_temp_dir_initialized(self):
+    
+    def test_theme_and_language_initialized(self):
         config = Config()
-        assert config.preview_temp_dir is not None
+        assert config.theme in ["light", "dark"]
+        assert config.language in ["en", "zh"]
 
 
 class TestConfigSaveLoad:
@@ -82,6 +83,8 @@ class TestConfigSaveLoad:
             log_level="DEBUG",
             transfer_max_workers=5,
             preview_max_size=20 * 1024 * 1024,
+            theme="dark",
+            language="en",
         )
         original.save(config_path)
 
@@ -92,6 +95,8 @@ class TestConfigSaveLoad:
         assert loaded.log_level == "DEBUG"
         assert loaded.transfer_max_workers == 5
         assert loaded.preview_max_size == 20 * 1024 * 1024
+        assert loaded.theme == "dark"
+        assert loaded.language == "en"
 
     def test_load_nonexistent_file(self):
         config = Config.load(Path("/nonexistent/path/config.json"))

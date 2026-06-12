@@ -290,7 +290,7 @@ FileBrowserWidget (QSplitter)
 - 单例模式国际化管理器
 - 从 `resources/i18n/` 加载 JSON 翻译
 - 支持中文/英文切换
-- 偏好设置持久化到 `~/.opencode/file_browser_config.json`
+- 配置保存在 `config/config.json`
 - `tr()` 方法支持嵌套键和模板变量
 
 #### AsyncLoader (`async_loader.py`)
@@ -434,23 +434,34 @@ class Config:
 ```
 
 ### 用户偏好配置
-存储在 `~/.opencode/file_browser_config.json`：
+存储在项目目录 `config/config.json`：
 - 主题偏好（light/dark）
 - 语言偏好（en/zh）
 - 窗口尺寸
+- 其他配置参数
 
 ## 8. 项目目录结构
 
 ```
 OpenHarmony_FileBrowser/
 ├── main.py                          # 顶层入口点
-├── build.py                         # PyInstaller 打包脚本
-├── setup.py                         # Python 包安装配置
+├── package/                         # 构建和打包脚本
+│   ├── build.py                     # PyInstaller 打包脚本
+│   ├── setup.py                     # Python 包安装配置
+│   ├── MANIFEST.in                  # 资源文件清单
+│   └── README.md                    # 构建说明
+├── generate/                        # 图标生成工具
+│   ├── generate.py                  # 图标生成脚本
+│   └ README.md                      # 使用说明
+├── config/                          # 配置目录
+│   ├── config.json                  # 配置文件（提交到 git）
+│   └── logs/                        # 日志目录（运行时生成）
 ├── requirements.txt                 # 运行时依赖
 ├── requirements-dev.txt             # 开发依赖
 ├── LICENSE                          # Apache 2.0 许可证
 ├── README.md                        # 项目说明文档
 ├── DESIGN.md                        # 设计文档（本文件）
+├── .gitignore                       # Git排除规则
 │
 ├── hdc/                             # HDC 工具二进制文件
 │   ├── Darwin/
@@ -521,17 +532,20 @@ OpenHarmony_FileBrowser/
 │
 ├── tests/                           # 测试套件
 │   ├── __init__.py
-│   ├── simple_test.py
-│   ├── test_phase1.py ~ test_phase5.py
-│   ├── test_all_phases.py
-│   ├── test_comprehensive.py
-│   ├── test_ctrl_a_fix.py
-│   ├── test_path_separator_fix.py
-│   ├── verify_all_fixes.py
-│   └── verify_ctrl_a_fix.py
-│
-└── logs/                            # 应用日志文件
-    └── 20260610.log
+│   ├── conftest.py
+│   ├── unit/                        # 单元测试
+│   │   ├── test_config.py
+│   │   ├── test_device_model.py
+│   │   ├── test_file_info_model.py
+│   │   ├── test_file_operations.py
+│   │   ├── test_file_utils.py
+│   │   ├── test_gui_widgets.py
+│   │   ├── test_language_manager.py
+│   │   ├── test_platform_utils.py
+│   │   ├── test_preview_handler.py
+│   │   └── test_transfer_manager.py
+│   └── integration/                 # 集成测试
+│       └── test_integration.py
 ```
 
 ## 9. 扩展性设计

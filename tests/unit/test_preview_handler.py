@@ -88,10 +88,6 @@ class TestPreviewHandlerInit:
                 pass
         return MockHdc()
 
-    def test_temp_dir_created(self, mock_hdc):
-        handler = PreviewHandler(mock_hdc, "test_device")
-        assert handler.temp_dir.exists()
-
     def test_device_id_set(self, mock_hdc):
         handler = PreviewHandler(mock_hdc, "test_device")
         assert handler.device_id == "test_device"
@@ -100,11 +96,11 @@ class TestPreviewHandlerInit:
         handler = PreviewHandler(mock_hdc, "test_device")
         assert handler.max_preview_size == config.preview_max_size
 
-    def test_cleanup_all_temp_files(self, mock_hdc, tmp_path):
+    def test_uses_tempfile_not_temp_dir(self, mock_hdc):
+        """测试使用 tempfile 而不是自定义 temp_dir"""
         handler = PreviewHandler(mock_hdc, "test_device")
-        handler.temp_dir = tmp_path
-        test_file = tmp_path / "test_preview.jpg"
-        test_file.touch()
-
-        handler.cleanup_all_temp_files()
-        assert not test_file.exists()
+        # 验证不再有 temp_dir 属性
+        assert not hasattr(handler, 'temp_dir')
+        # 验证其他属性正常
+        assert handler.device_id == "test_device"
+        assert handler.max_preview_size > 0

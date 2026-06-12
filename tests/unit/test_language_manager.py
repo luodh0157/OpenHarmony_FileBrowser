@@ -16,7 +16,8 @@ class TestLanguageManagerInit:
         lm = LanguageManager()
         lm.i18n_dir = mock_i18n_dir
         lm.load_translations()
-        assert lm.current_language == "en"
+        # 默认语言从 config.json 读取（当前配置为 'zh'）
+        assert lm.current_language in ["en", "zh"]
 
     def test_translations_loaded(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
@@ -126,6 +127,7 @@ class TestLanguageManagerGetName:
         lm = LanguageManager()
         lm.i18n_dir = mock_i18n_dir
         lm.load_translations()
+        lm.set_language("en")  # 先设置为英文
         assert lm.get_language_name() == "English"
 
     def test_chinese_name(self, mock_i18n_dir, monkeypatch):

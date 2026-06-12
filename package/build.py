@@ -26,6 +26,25 @@ def build():
     hdc_dir = project_root / "hdc"
     resources_dir = project_root / "resources"
     assets_dir = project_root / "assets"
+    config_dir = project_root / "config"
+    
+    # 确保只打包 config.json，不打包 logs 等运行时目录
+    config_json = config_dir / "config.json"
+    if not config_json.exists():
+        print(f"Warning: {config_json} not found, creating default config")
+        config_json.parent.mkdir(parents=True, exist_ok=True)
+        import json
+        default_config = {
+            "app_name": "OpenHarmony File Browser",
+            "app_version": "0.1.0",
+            "window_width": 1200,
+            "window_height": 800,
+            "log_level": "INFO",
+            "theme": "light",
+            "language": "zh",
+        }
+        with open(config_json, 'w') as f:
+            json.dump(default_config, f, indent=2)
     
     platform_name = get_platform()
     
@@ -37,6 +56,7 @@ def build():
         "--optimize=1",
         f"--add-data={hdc_dir}:hdc",
         f"--add-data={resources_dir}:resources",
+        f"--add-data={config_json}:config",  # 只打包 config.json，不打包 logs
         "--clean",
         "--noconfirm",
         f"--distpath={project_root / 'dist'}",

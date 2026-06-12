@@ -6,6 +6,7 @@ Handles file preview operations (images and videos).
 import os
 import subprocess
 import platform
+import tempfile
 from typing import Optional
 from pathlib import Path
 
@@ -23,11 +24,11 @@ class PreviewHandler:
     Preview handler for managing file previews.
     
     Features:
-    - Download file to temp directory for preview
+    - Download file to system temp directory for preview
     - Image preview (using Pillow)
     - Video preview thumbnail extraction (placeholder)
     - Call system video player
-    - Temp file cleanup
+    - Temp file cleanup (auto-managed by OS)
     """
     
     def __init__(self, hdc: HDCWrapper, device_id: str):
@@ -41,12 +42,9 @@ class PreviewHandler:
         self.hdc = hdc
         self.device_id = device_id
         
-        self.temp_dir = config.preview_temp_dir
-        self.temp_dir.mkdir(parents=True, exist_ok=True)
-        
         self.max_preview_size = config.preview_max_size
         
-        logger.info(f"Preview handler initialized (temp_dir={self.temp_dir})")
+        logger.info("Preview handler initialized (using system temp directory)")
     
     def can_preview(self, file_name: str, file_size: int) -> bool:
         """
@@ -95,6 +93,7 @@ class PreviewHandler:
     def download_for_preview(self, remote_path: str) -> Optional[str]:
         """
         Download file from device for preview.
+        Uses system temp directory (auto-managed by OS).
         
         Args:
             remote_path: Remote file path
@@ -104,19 +103,25 @@ class PreviewHandler:
         """
         file_name = Path(remote_path).name
         
-        local_temp_path = self.temp_dir / file_name
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=Path(file_name).suffix,
+            prefix="preview_"
+        )
+        temp_file.close()
         
         try:
             logger.info(f"Downloading file for preview: {remote_path}")
             
-            self.hdc.file_recv(self.device_id, remote_path, str(local_temp_path))
+            self.hdc.file_recv(self.device_id, remote_path, temp_file.name)
             
-            logger.info(f"File downloaded to: {local_temp_path}")
+            logger.info(f"File downloaded to temp: {temp_file.name}")
             
-            return str(local_temp_path)
+            return temp_file.name
         
         except HDCError as e:
             logger.error(f"Failed to download file: {e}")
+            Path(temp_file.name).unlink(missing_ok=True)
             return None
     
     def open_image(self, local_path: str) -> Optional[bytes]:
@@ -162,7 +167,7 @@ class PreviewHandler:
             if system == "Windows":
                 os.startfile(local_path)
             elif system == "Darwin":  # macOS
-                subprocess.run(["open", local_path], check=False, creationflags=subprocess.CREATE_NO_WINDOW if system == "Windows" else 0)
+                subprocess.run(["open", local_path], check=False)
             else:  # Linux
                 subprocess.run(["xdg-open", local_path], check=False)
             
@@ -184,26 +189,13 @@ class PreviewHandler:
         try:
             file_path = Path(local_path)
             
-            if file_path.exists() and file_path.parent == self.temp_dir:
+            if file_path.exists():
                 file_path.unlink()
-                
                 logger.debug(f"Temp file cleaned up: {local_path}")
         
         except Exception as e:
             logger.warning(f"Failed to cleanup temp file: {e}")
     
-    def cleanup_all_temp_files(self):
-        """Clean up all temporary files."""
-        try:
-            for file in self.temp_dir.iterdir():
-                if file.is_file():
-                    file.unlink()
-            
-            logger.info("All temp files cleaned up")
-        
-        except Exception as e:
-            logger.warning(f"Failed to cleanup temp files: {e}")
-    
     def cleanup(self):
-        """Cleanup resources (alias for cleanup_all_temp_files)."""
-        self.cleanup_all_temp_files()
+        """Cleanup resources."""
+        logger.info("Preview handler cleanup completed")

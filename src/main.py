@@ -72,6 +72,10 @@ def check_hdc():
 
 def main():
     """Main entry point."""
+    # 确保日志目录存在
+    from .config import config
+    config.log_dir.mkdir(parents=True, exist_ok=True)
+    
     args = parse_args()
     
     if args.debug:

@@ -30,21 +30,20 @@ class Config:
     transfer_chunk_size: int = 1024 * 1024
     
     preview_max_size: int = 10 * 1024 * 1024
-    preview_temp_dir: Path = None
     
     default_remote_path: str = "/"
     
     show_upload_hint: bool = True
     
+    theme: str = "light"
+    language: str = "zh"
+    
     def __post_init__(self):
         """Initialize default paths."""
-        app_data_dir = Path.home() / ".openharmony_filebrowser"
+        config_dir = Path(__file__).parent.parent / "config"
         
         if self.log_dir is None:
-            self.log_dir = app_data_dir / "logs"
-        
-        if self.preview_temp_dir is None:
-            self.preview_temp_dir = app_data_dir / "temp"
+            self.log_dir = config_dir / "logs"
     
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> "Config":
@@ -57,25 +56,34 @@ class Config:
         Returns:
             Config instance
         """
-        if config_path and config_path.exists():
+        if config_path is None:
+            config_path = Path(__file__).parent.parent / "config" / "config.json"
+        
+        if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return cls(**data)
+        
         return cls()
     
-    def save(self, config_path: Path) -> None:
+    def save(self, config_path: Optional[Path] = None) -> None:
         """
         Save configuration to file.
         
         Args:
             config_path: Path to config file
         """
+        if config_path is None:
+            config_path = Path(__file__).parent.parent / "config" / "config.json"
+        
         data = {
             "window_width": self.window_width,
             "window_height": self.window_height,
             "log_level": self.log_level,
             "transfer_max_workers": self.transfer_max_workers,
             "preview_max_size": self.preview_max_size,
+            "theme": self.theme,
+            "language": self.language,
         }
         
         config_path.parent.mkdir(parents=True, exist_ok=True)

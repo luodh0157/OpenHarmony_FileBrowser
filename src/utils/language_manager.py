@@ -11,6 +11,7 @@ from PySide6.QtCore import QObject, Signal
 
 
 from src.utils.logger import get_logger
+from src.config import config
 
 
 _resource_cache = {}
@@ -50,52 +51,14 @@ class LanguageManager(QObject):
         """初始化语言管理器"""
         super().__init__()
         
-        self.current_language = 'en'
+        self.current_language = config.language
         self.translations: Dict[str, Any] = {}
         
         # 翻译文件路径
         self.i18n_dir = get_resource_path("resources/i18n")
         
-        # 配置文件路径
-        self.config_file = Path.home() / '.openharmony_filebrowser' / 'file_browser_config.json'
-        
-        # 加载用户偏好
-        self.load_preference()
-        
         # 加载翻译文件
         self.load_translations()
-    
-    def load_preference(self):
-        """加载用户语言偏好"""
-        try:
-            if self.config_file.exists():
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                    preferred_lang = config.get('language', 'en')
-                    if preferred_lang in ['en', 'zh']:
-                        self.current_language = preferred_lang
-                        logger.info(f"Loaded user language preference: {preferred_lang}")
-        except Exception as e:
-            logger.warning(f"Failed to load language preference: {e}")
-    
-    def save_preference(self):
-        """保存用户语言偏好"""
-        try:
-            self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            config = {}
-            if self.config_file.exists():
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-            
-            config['language'] = self.current_language
-            
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2)
-            
-            logger.info(f"Saved user language preference: {self.current_language}")
-        except Exception as e:
-            logger.error(f"Failed to save language preference: {e}")
     
     def load_translations(self):
         """加载当前语言的翻译文件"""
@@ -132,8 +95,9 @@ class LanguageManager(QObject):
         # 重新加载翻译
         self.load_translations()
         
-        # 保存用户偏好
-        self.save_preference()
+        # 保存到统一配置
+        config.language = language
+        config.save()
         
         # 发送语言切换信号
         self.language_changed.emit(language)
