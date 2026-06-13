@@ -302,10 +302,10 @@ class TransferDialog(QDialog):
         
         if task.status == TransferStatus.COMPLETED:
             progress_item.setText(language_manager.tr('transfer.complete'))
-            progress_item.setForeground(QColor("#4caf50"))
+            progress_item.setForeground(QColor("#3FB950"))
         elif task.status == TransferStatus.FAILED:
             progress_item.setText(language_manager.tr('transfer.failed', error=task.error or 'Unknown error'))
-            progress_item.setForeground(QColor("#f44336"))
+            progress_item.setForeground(QColor("#F85149"))
         elif task.status == TransferStatus.RUNNING:
             progress_item.setText(f"{task.progress}%")
         else:

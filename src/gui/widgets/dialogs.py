@@ -193,7 +193,7 @@ class DeleteConfirmDialog(QDialog):
         
         if is_dir:
             self.warning_label = QLabel(
-                "<font color='red'>" + language_manager.tr('dialogs.delete_warning') + "</font>"
+                "<font color='#F85149'>" + language_manager.tr('dialogs.delete_warning') + "</font>"
             )
             self.warning_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(self.warning_label)
@@ -210,7 +210,7 @@ class DeleteConfirmDialog(QDialog):
             self.info_label.setText(language_manager.tr('dialogs.delete_folder' if is_dir else 'dialogs.delete_file'))
         if hasattr(self, 'warning_label') and is_dir:
             self.warning_label.setText(
-                "<font color='red'>" + language_manager.tr('dialogs.delete_warning') + "</font>"
+                "<font color='#F85149'>" + language_manager.tr('dialogs.delete_warning') + "</font>"
             )
         for child in self.findChildren(QDialogButtonBox):
             for button in child.buttons():

@@ -101,12 +101,6 @@ class FileListWidget(QWidget):
         self.table.setColumnCount(5)
         self._update_table_headers()
         
-        self.table.setStyleSheet("""
-            QTableCornerButton::section {
-                background-color: transparent;
-            }
-        """)
-        
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Fixed)
         header.setSectionResizeMode(1, QHeaderView.Interactive)
@@ -145,7 +139,7 @@ class FileListWidget(QWidget):
         
         self.empty_label = QLabel(language_manager.tr('file_list.empty_text'))
         self.empty_label.setAlignment(Qt.AlignCenter)
-        self.empty_label.setStyleSheet("color: gray; font-size: 12px; padding: 20px;")
+        self.empty_label.setStyleSheet("color: #8B949E; font-size: 12px; padding: 20px;")
         self.empty_label.hide()
         content_layout.addWidget(self.empty_label, stretch=1)
         
@@ -377,7 +371,7 @@ class FileListWidget(QWidget):
             # Name column (column 1)
             name_item = QTableWidgetItem(file_info.name)
             if file_info.is_dir:
-                name_item.setForeground(QColor("#1976d2"))
+                name_item.setForeground(QColor("#58A6FF"))
                 name_item.setIcon(icon_manager.get_icon('folder'))
             else:
                 name_item.setIcon(icon_manager.get_file_type_icon(file_info.name, False))
@@ -386,7 +380,7 @@ class FileListWidget(QWidget):
             # Size column (column 2)
             if file_info.is_dir:
                 size_item = QTableWidgetItem(language_manager.tr('file_list.dir_placeholder'))
-                size_item.setForeground(QColor("#757575"))
+                size_item.setForeground(QColor("#8B949E"))
             else:
                 size_item = QTableWidgetItem(file_info.display_size)
             self.table.setItem(row, 2, size_item)

@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self._loading_widget = QLabel(language_manager.tr('status.initializing'))
         self._loading_widget.setAlignment(Qt.AlignCenter)
         self._loading_widget.setStyleSheet(
-            "color: #888; font-size: 18px; padding: 60px;"
+            "color: #8B949E; font-size: 18px; padding: 60px;"
         )
         layout.addWidget(self._loading_widget)
     
@@ -338,7 +338,7 @@ class MainWindow(QMainWindow):
         """Update device status display."""
         if device_id and device_name:
             self.device_label_status.setText(
-                f"<span style='color: #22c55e;'>{language_manager.tr('status.connected', device_name=device_name)}</span>"
+                f"<span style='color: #3FB950;'>{language_manager.tr('status.connected', device_name=device_name)}</span>"
             )
         else:
             self.device_label_status.setText(language_manager.tr('status.no_device'))
@@ -415,9 +415,9 @@ class MainWindow(QMainWindow):
     def _update_device_display(self):
         """Update device combo box display to show checkmark only for selected device."""
         current_index = self.device_combo.currentIndex()
-        checkmark_icon = _create_checkmark_icon('#2563eb')
+        checkmark_icon = _create_checkmark_icon('#58A6FF')
         blank_icon = _create_blank_icon()
-        blue_color = QColor('#2563eb')
+        blue_color = QColor('#58A6FF')
         normal_color = self.palette().color(QPalette.WindowText)
         
         for i in range(self.device_combo.count()):
