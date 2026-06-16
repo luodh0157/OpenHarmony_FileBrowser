@@ -9,6 +9,7 @@ from typing import Optional
 
 class DeviceStatus(Enum):
     """Device connection status."""
+
     DISCONNECTED = "disconnected"
     CONNECTED = "connected"
     UNAUTHORIZED = "unauthorized"
@@ -20,7 +21,7 @@ class DeviceStatus(Enum):
 class DeviceInfo:
     """
     Device information data class.
-    
+
     Attributes:
         device_id: Device serial number or IP:PORT
         status: Device connection status
@@ -31,6 +32,7 @@ class DeviceInfo:
         transport_id: Transport ID for wireless connection
         is_wireless: Whether connected via wireless
     """
+
     device_id: str
     status: DeviceStatus = DeviceStatus.UNKNOWN
     model: Optional[str] = None
@@ -39,7 +41,7 @@ class DeviceInfo:
     device: Optional[str] = None
     transport_id: Optional[str] = None
     is_wireless: bool = False
-    
+
     def __str__(self) -> str:
         """String representation of device."""
         parts = [self.device_id]
@@ -47,7 +49,7 @@ class DeviceInfo:
             parts.append(f"({self.model})")
         parts.append(f"[{self.status.value}]")
         return " ".join(parts)
-    
+
     def __repr__(self) -> str:
         """Repr representation."""
         return (
@@ -55,7 +57,7 @@ class DeviceInfo:
             f"status={self.status}, model='{self.model}', "
             f"is_wireless={self.is_wireless})"
         )
-    
+
     @property
     def display_name(self) -> str:
         """Get display name for the device."""
@@ -67,7 +69,7 @@ class DeviceInfo:
             return self.brand
         else:
             return self.device_id
-    
+
     @property
     def compact_display_name(self) -> str:
         """Get compact display name with truncated device_id and model."""

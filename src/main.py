@@ -10,7 +10,6 @@ from .config import config
 from .utils.logger import get_logger, set_global_log_level
 from .utils.platform_utils import get_platform_info
 
-
 logger = get_logger(__name__)
 
 
@@ -19,19 +18,19 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="OpenHarmony File Browser - A cross-platform file browser for OpenHarmony/HarmonyOS devices"
     )
-    
+
     parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug mode",
     )
-    
+
     parser.add_argument(
         "--version",
         action="version",
         version=f"OpenHarmony File Browser {config.app_version}",
     )
-    
+
     return parser.parse_args()
 
 
@@ -39,20 +38,22 @@ def check_dependencies():
     """Check if all dependencies are available."""
     try:
         import PySide6
+
         logger.debug("PySide6 is available")
     except ImportError as e:
         print(f"Error: PySide6 is not installed: {e}")
         print("Please install it with: pip install PySide6")
         return False
-    
+
     try:
         from PIL import Image
+
         logger.debug("Pillow is available")
     except ImportError as e:
         print(f"Error: Pillow is not installed: {e}")
         print("Please install it with: pip install Pillow")
         return False
-    
+
     return True
 
 
@@ -60,6 +61,7 @@ def check_hdc():
     """Check if HDC tool is available."""
     try:
         from .utils.platform_utils import get_hdc_executable
+
         hdc_path = get_hdc_executable()
         logger.info(f"HDC tool found: {hdc_path}")
         return True
@@ -71,50 +73,51 @@ def check_hdc():
 def main():
     """Main entry point."""
     config.log_dir.mkdir(parents=True, exist_ok=True)
-    
+
     args = parse_args()
-    
+
     logger.info(f"Starting {config.app_name} v{config.app_version}")
     logger.debug(f"Platform info: {get_platform_info()}")
-    
+
     if not check_dependencies():
         sys.exit(1)
-    
+
     hdc_available = check_hdc()
     if not hdc_available:
         logger.warning(
             "HDC tool not found. Please ensure HDC tool is placed in the correct directory."
         )
-    
+
     try:
         from PySide6.QtWidgets import QApplication
-        
+
         app = QApplication(sys.argv)
         app.setApplicationName(config.app_name)
         app.setApplicationVersion(config.app_version)
         app.setOrganizationName("OpenHarmony")
-        
+
         from .gui.main_window import MainWindow
-        
+
         # 所有模块已加载，日志器已注册，此时统一设日志级别
         if args.debug:
             import logging
+
             set_global_log_level(logging.DEBUG)
             logger.debug("Debug mode enabled")
-        
+
         window = MainWindow()
         window.show()
-        
+
         logger.info("Application started successfully")
         logger.info(f"Phase 2 GUI initialized")
-        
+
         if hdc_available:
             logger.info("HDC tool available, device monitoring active")
         else:
             logger.warning("HDC tool not available, device features limited")
-        
+
         sys.exit(app.exec())
-        
+
     except Exception as e:
         logger.error(f"Failed to start application: {e}", exc_info=True)
         sys.exit(1)

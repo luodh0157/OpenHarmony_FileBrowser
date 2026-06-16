@@ -91,12 +91,14 @@ class TestFileOperationsWithMockHdc:
     @pytest.fixture
     def mock_hdc(self):
         """Create a mock HDC wrapper."""
+
         class MockHdc:
             def shell_ls(self, device_id, path, show_hidden=False):
                 return []
 
             def shell_stat(self, device_id, path):
                 from src.models.file_info import FileInfo, FileType
+
                 return FileInfo(
                     name="test",
                     path=path,

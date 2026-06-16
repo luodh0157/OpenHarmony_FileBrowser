@@ -58,14 +58,29 @@ class TestCoreIntegration:
         class MockHdc:
             def shell_ls(self, device_id, path, show_hidden=False):
                 from src.models.file_info import FileInfo, FileType
+
                 return [
-                    FileInfo(name="file1.txt", path=f"{path}/file1.txt", is_dir=False, size=100, file_type=FileType.FILE),
-                    FileInfo(name="folder1", path=f"{path}/folder1", is_dir=True, file_type=FileType.DIRECTORY),
+                    FileInfo(
+                        name="file1.txt",
+                        path=f"{path}/file1.txt",
+                        is_dir=False,
+                        size=100,
+                        file_type=FileType.FILE,
+                    ),
+                    FileInfo(
+                        name="folder1",
+                        path=f"{path}/folder1",
+                        is_dir=True,
+                        file_type=FileType.DIRECTORY,
+                    ),
                 ]
 
             def shell_stat(self, device_id, path):
                 from src.models.file_info import FileInfo, FileType
-                return FileInfo(name="test", path=path, is_dir=True, file_type=FileType.DIRECTORY)
+
+                return FileInfo(
+                    name="test", path=path, is_dir=True, file_type=FileType.DIRECTORY
+                )
 
             def shell_mkdir(self, device_id, path):
                 pass
@@ -139,6 +154,7 @@ class TestGuiIntegration:
         # Process events to allow deferred UI initialization
         QApplication.processEvents()
         import time
+
         time.sleep(0.1)
         QApplication.processEvents()
         assert window.file_browser is not None
@@ -255,7 +271,11 @@ class TestEndToEnd:
         from src.gui.widgets.file_tree import FileTreeWidget
         from src.gui.widgets.file_list import FileListWidget
         from src.gui.widgets.path_bar import PathBarWidget
-        from src.gui.widgets.dialogs import RenameDialog, CreateFolderDialog, DeleteConfirmDialog
+        from src.gui.widgets.dialogs import (
+            RenameDialog,
+            CreateFolderDialog,
+            DeleteConfirmDialog,
+        )
         from src.gui.widgets.transfer_dialog import TransferDialog
         from src.gui.widgets.preview_window import PreviewWindow
 

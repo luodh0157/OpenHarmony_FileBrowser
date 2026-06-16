@@ -96,9 +96,15 @@ class TestGetPlatformInfo:
     def test_contains_required_keys(self):
         result = get_platform_info()
         required_keys = [
-            "system", "node", "release", "version",
-            "machine", "processor", "python_version",
-            "platform", "architecture",
+            "system",
+            "node",
+            "release",
+            "version",
+            "machine",
+            "processor",
+            "python_version",
+            "platform",
+            "architecture",
         ]
         for key in required_keys:
             assert key in result

@@ -64,7 +64,7 @@ class TestConfigDefaults:
     def test_log_dir_initialized(self):
         config = Config()
         assert config.log_dir is not None
-    
+
     def test_theme_and_language_initialized(self):
         config = Config()
         assert config.theme in ["light", "dark"]

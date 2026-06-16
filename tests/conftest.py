@@ -177,9 +177,23 @@ def mock_icons_dir(tmp_path):
     dark_dir.mkdir(parents=True)
 
     icon_names = [
-        "folder", "file", "image", "video", "music", "document",
-        "archive", "code", "refresh", "refresh_devices", "upload",
-        "download", "delete", "rename", "new_folder", "sun", "moon",
+        "folder",
+        "file",
+        "image",
+        "video",
+        "music",
+        "document",
+        "archive",
+        "code",
+        "refresh",
+        "refresh_devices",
+        "upload",
+        "download",
+        "delete",
+        "rename",
+        "new_folder",
+        "sun",
+        "moon",
         "arrow_down",
     ]
 

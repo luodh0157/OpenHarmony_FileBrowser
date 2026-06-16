@@ -38,6 +38,7 @@ stages:
           - python --version
           - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - yum install -y mesa-libEGL mesa-libGL
           - python -m pip install --upgrade pip
           - pip install -r requirements.txt
           - pip install -r requirements-dev.txt
@@ -80,6 +81,7 @@ stages:
           - python --version
           - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - yum install -y mesa-libEGL mesa-libGL
           - python -m pip install --upgrade pip
           - pip install -r requirements.txt
           - pip install pyinstaller

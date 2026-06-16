@@ -15,6 +15,7 @@ class TestPreviewHandlerCanPreview:
         class MockHdc:
             def file_recv(self, device_id, remote_path, local_path):
                 pass
+
         return MockHdc()
 
     def test_image_can_preview(self, mock_hdc):
@@ -51,6 +52,7 @@ class TestPreviewHandlerIsImageVideo:
         class MockHdc:
             def file_recv(self, device_id, remote_path, local_path):
                 pass
+
         return MockHdc()
 
     def test_is_image_jpg(self, mock_hdc):
@@ -86,6 +88,7 @@ class TestPreviewHandlerInit:
         class MockHdc:
             def file_recv(self, device_id, remote_path, local_path):
                 pass
+
         return MockHdc()
 
     def test_device_id_set(self, mock_hdc):
@@ -100,7 +103,7 @@ class TestPreviewHandlerInit:
         """测试使用 tempfile 而不是自定义 temp_dir"""
         handler = PreviewHandler(mock_hdc, "test_device")
         # 验证不再有 temp_dir 属性
-        assert not hasattr(handler, 'temp_dir')
+        assert not hasattr(handler, "temp_dir")
         # 验证其他属性正常
         assert handler.device_id == "test_device"
         assert handler.max_preview_size > 0

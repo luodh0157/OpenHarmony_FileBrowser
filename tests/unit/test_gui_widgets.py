@@ -26,17 +26,20 @@ class TestFileListWidget:
 
     def test_create_widget(self, qapp):
         from src.gui.widgets.file_list import FileListWidget
+
         widget = FileListWidget()
         assert widget is not None
 
     def test_clear_device(self, qapp):
         from src.gui.widgets.file_list import FileListWidget
+
         widget = FileListWidget()
         widget.clear_device()
         assert widget.table.rowCount() == 0
 
     def test_select_all_shortcut(self, qapp):
         from src.gui.widgets.file_list import FileListWidget, CustomCheckBox
+
         widget = FileListWidget()
         widget.table.setRowCount(3)
         for row in range(3):
@@ -52,6 +55,7 @@ class TestFileListWidget:
 
     def test_deselect_all_shortcut(self, qapp):
         from src.gui.widgets.file_list import FileListWidget, CustomCheckBox
+
         widget = FileListWidget()
         widget.table.setRowCount(3)
         for row in range(3):
@@ -67,6 +71,7 @@ class TestFileListWidget:
 
     def test_ctrl_a_event_filter(self, qapp):
         from src.gui.widgets.file_list import FileListWidget, CustomCheckBox
+
         widget = FileListWidget()
         widget.table.setRowCount(2)
         for row in range(2):
@@ -84,6 +89,7 @@ class TestFileListWidget:
 
     def test_ctrl_d_event_filter(self, qapp):
         from src.gui.widgets.file_list import FileListWidget, CustomCheckBox
+
         widget = FileListWidget()
         widget.table.setRowCount(2)
         for row in range(2):
@@ -106,7 +112,13 @@ class TestFileListWidget:
 
         widget = FileListWidget()
         test_files = [
-            FileInfo(name=f"file_{i}.txt", path=f"/test/file_{i}.txt", is_dir=False, size=100, file_type=FileType.FILE)
+            FileInfo(
+                name=f"file_{i}.txt",
+                path=f"/test/file_{i}.txt",
+                is_dir=False,
+                size=100,
+                file_type=FileType.FILE,
+            )
             for i in range(3)
         ]
         widget.files = test_files
@@ -127,11 +139,13 @@ class TestFileTreeWidget:
 
     def test_create_widget(self, qapp):
         from src.gui.widgets.file_tree import FileTreeWidget
+
         widget = FileTreeWidget()
         assert widget is not None
 
     def test_clear_device(self, qapp):
         from src.gui.widgets.file_tree import FileTreeWidget
+
         widget = FileTreeWidget()
         widget.clear_device()
         assert widget.tree.topLevelItemCount() == 0
@@ -142,17 +156,20 @@ class TestPathBarWidget:
 
     def test_create_widget(self, qapp):
         from src.gui.widgets.path_bar import PathBarWidget
+
         widget = PathBarWidget()
         assert widget is not None
 
     def test_set_path(self, qapp):
         from src.gui.widgets.path_bar import PathBarWidget
+
         widget = PathBarWidget()
         widget.set_path("/data/local/tmp")
         assert widget.current_path == "/data/local/tmp"
 
     def test_set_path_root(self, qapp):
         from src.gui.widgets.path_bar import PathBarWidget
+
         widget = PathBarWidget()
         widget.set_path("/")
         assert widget.current_path == "/"
@@ -163,26 +180,32 @@ class TestDialogs:
 
     def test_rename_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import RenameDialog
+
         assert RenameDialog is not None
 
     def test_create_folder_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import CreateFolderDialog
+
         assert CreateFolderDialog is not None
 
     def test_delete_confirm_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import DeleteConfirmDialog
+
         assert DeleteConfirmDialog is not None
 
     def test_show_error_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import show_error_dialog
+
         assert show_error_dialog is not None
 
     def test_show_success_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import show_success_dialog
+
         assert show_success_dialog is not None
 
     def test_show_warning_dialog_import(self, qapp):
         from src.gui.widgets.dialogs import show_warning_dialog
+
         assert show_warning_dialog is not None
 
 
@@ -191,6 +214,7 @@ class TestTransferDialog:
 
     def test_create_dialog(self, qapp):
         from src.gui.widgets.transfer_dialog import TransferDialog
+
         dialog = TransferDialog()
         assert dialog is not None
 
@@ -257,17 +281,20 @@ class TestPreviewWindow:
 
     def test_create_window(self, qapp):
         from src.gui.widgets.preview_window import PreviewWindow
+
         window = PreviewWindow()
         assert window is not None
 
     def test_ui_components_exist(self, qapp):
         from src.gui.widgets.preview_window import PreviewWindow
+
         window = PreviewWindow()
         assert window.image_label is not None
         assert window.video_placeholder is not None
 
     def test_zoom_methods_callable(self, qapp):
         from src.gui.widgets.preview_window import PreviewWindow
+
         window = PreviewWindow()
         window._zoom_in()
         window._zoom_out()
@@ -276,6 +303,7 @@ class TestPreviewWindow:
 
     def test_close_window(self, qapp):
         from src.gui.widgets.preview_window import PreviewWindow
+
         window = PreviewWindow()
         window.close()
 
@@ -285,16 +313,19 @@ class TestMainWindow:
 
     def test_create_window(self, qapp):
         from src.gui.main_window import MainWindow
+
         window = MainWindow()
         assert window is not None
 
     def test_window_title(self, qapp):
         from src.gui.main_window import MainWindow
+
         window = MainWindow()
         assert "OpenHarmony" in window.windowTitle()
 
     def test_close_window(self, qapp):
         from src.gui.main_window import MainWindow
+
         window = MainWindow()
         window.close()
 
@@ -304,15 +335,18 @@ class TestFileBrowserWidget:
 
     def test_create_widget(self, qapp):
         from src.gui.widgets.file_browser import FileBrowserWidget
+
         widget = FileBrowserWidget()
         assert widget is not None
 
     def test_clear_device(self, qapp):
         from src.gui.widgets.file_browser import FileBrowserWidget
+
         widget = FileBrowserWidget()
         widget.clear_device()
 
     def test_drag_drop_enabled(self, qapp):
         from src.gui.widgets.file_browser import FileBrowserWidget
+
         widget = FileBrowserWidget()
         assert widget.acceptDrops() is True
