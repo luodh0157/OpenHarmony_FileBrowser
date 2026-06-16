@@ -1,0 +1,106 @@
+version: '1.0'
+name: build
+displayName: OpenHarmony FileBrowser 版本构建
+triggers:
+  trigger: auto
+  push:
+    tags:
+      prefix:
+        - OpenHarmony_FileBrowser_V
+stages:
+  - name: test-stage
+    displayName: 全量测试
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@python
+        name: test-all
+        displayName: 运行所有测试
+        pythonVersion: '3.11'
+        commands:
+          - curl -L -o Miniforge3-Linux-x86_64.sh "https://mirrors.tuna.tsinghua.edu.cn/github-release/conda-forge/miniforge/LatestRelease/Miniforge3-Linux-x86_64.sh"
+          - bash Miniforge3-Linux-x86_64.sh -b -p $HOME/miniforge3
+          - $HOME/miniforge3/bin/conda init bash
+          - source $HOME/miniforge3/etc/profile.d/conda.sh
+          - conda config --remove-key channels
+          - conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+          - conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+          - conda config --set custom_channels.conda-forge https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set custom_channels.bioconda https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set custom_channels.pytorch https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set show_channel_urls yes
+          - conda config --set channel_priority strict
+          - conda config --set solver libmamba
+          - conda clean -i -y
+          - conda create -n py311 python=3.11.9 -y
+          - conda activate py311
+          - python --version
+          - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - python -m pip install --upgrade pip
+          - pip install -r requirements.txt
+          - pip install -r requirements-dev.txt
+          - black --check src/ tests/
+          - flake8 src/ tests/ --max-line-length=120
+          - QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+          - python -m mypy src/ --ignore-missing-imports --no-error-summary || true
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+          timeout: null
+  - name: build-stage
+    displayName: PyInstaller 构建
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@python
+        name: build-executable
+        displayName: 构建可执行文件
+        pythonVersion: '3.11'
+        commands:
+          - curl -L -o Miniforge3-Linux-x86_64.sh "https://mirrors.tuna.tsinghua.edu.cn/github-release/conda-forge/miniforge/LatestRelease/Miniforge3-Linux-x86_64.sh"
+          - bash Miniforge3-Linux-x86_64.sh -b -p $HOME/miniforge3
+          - $HOME/miniforge3/bin/conda init bash
+          - source $HOME/miniforge3/etc/profile.d/conda.sh
+          - conda config --remove-key channels
+          - conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+          - conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+          - conda config --set custom_channels.conda-forge https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set custom_channels.bioconda https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set custom_channels.pytorch https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+          - conda config --set show_channel_urls yes
+          - conda config --set channel_priority strict
+          - conda config --set solver libmamba
+          - conda clean -i -y
+          - conda create -n py311 python=3.11.9 -y
+          - conda activate py311
+          - python --version
+          - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - python -m pip install --upgrade pip
+          - pip install -r requirements.txt
+          - pip install pyinstaller
+          - python package/build.py
+          - cd dist
+          - tar czf "OpenHarmonyFileBrowser-Linux-x64.tar.gz" "OpenHarmonyFileBrowser/"
+          - cd ..
+        artifacts:
+          - name: FILEBROWSER_ARTIFACT
+            path:
+              - dist/OpenHarmonyFileBrowser-Linux-x64.tar.gz
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+      - step: publish@general_artifacts
+        name: publish-artifact
+        displayName: 上传构建制品
+        dependArtifact: FILEBROWSER_ARTIFACT
+        artifactName: OpenHarmonyFileBrowser-Linux-x64
+        notify: []
+        strategy:
+          retry: '0'
+        dependsOn: build-executable

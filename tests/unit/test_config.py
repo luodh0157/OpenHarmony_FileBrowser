@@ -17,7 +17,7 @@ class TestConfigDefaults:
 
     def test_app_version(self):
         config = Config()
-        assert config.app_version == "0.1.0"
+        assert config.app_version == "1.0.0"
 
     def test_window_dimensions(self):
         config = Config()

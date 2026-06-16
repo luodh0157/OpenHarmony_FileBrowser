@@ -1,0 +1,144 @@
+name: Build OpenHarmony FileBrowser Linux x64 (GitCode)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - 'OpenHarmony_FileBrowser_V*'
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  test-all:
+    runs-on: euleros-2.10.1
+    steps:
+      - uses: checkout-action@0.0.1
+
+      - name: Install Python via Miniconda
+        run: |
+          curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
+          bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+          export PATH="$HOME/miniconda/bin:$PATH"
+          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+          conda config --set show_channel_urls yes
+          conda create -n py311 python=3.11.9 -y
+          source activate py311
+          python --version
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+
+      - name: Install system dependencies (Qt)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          yum install -y mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
+
+      - name: Configure pip mirror
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          mkdir -p ~/.pip
+          echo "[global]" > ~/.pip/pip.conf
+          echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
+          echo "timeout = 120" >> ~/.pip/pip.conf
+
+      - name: Install test dependencies
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Check code formatting (black)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          black --check src/ tests/
+
+      - name: Lint code (flake8)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          flake8 src/ tests/ --max-line-length=120
+
+      - name: Run pytest with coverage
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+
+      - name: Run type check (mypy)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          python -m mypy src/ --ignore-missing-imports --no-error-summary || true
+
+  build:
+    runs-on: euleros-2.10.1
+    steps:
+      - uses: checkout-action@0.0.1
+
+      - name: Install Python via Miniconda
+        run: |
+          curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
+          bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+          export PATH="$HOME/miniconda/bin:$PATH"
+          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+          conda config --set show_channel_urls yes
+          conda create -n py311 python=3.11.9 -y
+          source activate py311
+          python --version
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+
+      - name: Configure pip mirror
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          mkdir -p ~/.pip
+          echo "[global]" > ~/.pip/pip.conf
+          echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
+          echo "timeout = 120" >> ~/.pip/pip.conf
+
+      - name: Install build dependencies
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build PyInstaller executable
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          python package/build.py
+
+      - name: Create distribution archive
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          cd dist
+          tar czf "OpenHarmonyFileBrowser-Linux-x64.tar.gz" "OpenHarmonyFileBrowser/"
+          cd ..
+
+      - name: Check build output
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          if [ -d "dist/OpenHarmonyFileBrowser" ]; then
+            echo "Build output found at: dist/OpenHarmonyFileBrowser"
+            ls -la dist/
+          else
+            echo "::error::Build output not found"
+            exit 1
+          fi
+
+      #- name: Upload artifact
+      #  uses: upload-artifact@0.0.1
+      #  with:
+      #    name: OpenHarmonyFileBrowser-Linux-x64
+      #    paths: repo_workspace/dist/OpenHarmonyFileBrowser-Linux-x64.tar.gz
+      #    retention-days: 30

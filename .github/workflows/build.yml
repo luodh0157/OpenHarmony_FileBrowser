@@ -1,0 +1,165 @@
+name: Build OpenHarmony FileBrowser Multi-Platform (GitHub)
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'OpenHarmony_FileBrowser_V*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==================== 测试阶段 ====================
+  test:
+    name: Run All Checks
+    uses: ./.github/workflows/test.yml
+
+  # ==================== PyInstaller 构建（Matrix）====================
+  build:
+    name: Build (${{ matrix.platform }}-${{ matrix.arch }})
+    needs: test
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: Windows
+            arch: x64
+            ext: .exe
+          - os: ubuntu-latest
+            platform: Linux
+            arch: x64
+            ext: ''
+          - os: macos-latest
+            platform: macOS
+            arch: arm64
+            ext: ''
+          - os: macos-15-intel
+            platform: macOS
+            arch: x64
+            ext: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install system dependencies (Linux)
+        if: matrix.platform == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1-mesa libegl1-mesa-dev libgl1-mesa-glx libgl1-mesa-dev
+          sudo apt-get install -y -qq libxcb-xinerama0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xfixes0 libxcb-cursor0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build PyInstaller executable
+        run: python package/build.py
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          OUTPUT_DIR="dist/OpenHarmonyFileBrowser"
+          if [ -d "$OUTPUT_DIR" ]; then
+            echo "Build output found at: $OUTPUT_DIR"
+            ls -la "$OUTPUT_DIR"
+          else
+            echo "::error::Build output not found: $OUTPUT_DIR"
+            exit 1
+          fi
+
+      - name: Create distribution archive
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ matrix.platform }}" = "Windows" ]; then
+            7z a -r "OpenHarmonyFileBrowser-${{ matrix.platform }}-${{ matrix.arch }}.zip" "OpenHarmonyFileBrowser/"
+          else
+            tar czf "OpenHarmonyFileBrowser-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz" "OpenHarmonyFileBrowser/"
+          fi
+          cd ..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenHarmonyFileBrowser-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/OpenHarmonyFileBrowser-${{ matrix.platform }}-${{ matrix.arch }}.*
+          retention-days: 30
+          if-no-files-found: error
+
+  # ==================== 发布 Release（仅 tag 时触发）====================
+  create-release:
+    name: Create GitHub Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/OpenHarmony_FileBrowser_V')
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts/
+          merge-multiple: false
+
+      - name: Display artifacts structure
+        run: find release-artifacts/ -type f | head -50
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: OpenHarmony FileBrowser ${{ github.ref_name }}
+          files: |
+            release-artifacts/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ==================== 失败通知 ====================
+  notify-on-failure:
+    name: Notify on CI Failure
+    needs: [build]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create issue on failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `CI Failed: ${context.workflow} - ${context.ref}`,
+              body: `
+                ## CI Build Failed
+
+                **Workflow**: ${context.workflow}
+                **Branch/Tag**: ${context.ref}
+                **Run URL**: ${context.serverUrl}/${context.repository}/actions/runs/${context.runId}
+                **Triggered by**: ${context.actor}
+
+                Please investigate the failure.
+              `,
+              labels: ['ci-failed', 'automated']
+            })

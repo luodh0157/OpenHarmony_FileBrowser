@@ -13,7 +13,7 @@ class Config:
     """Application configuration."""
     
     app_name: str = "OpenHarmony File Browser"
-    app_version: str = "0.1.0"
+    app_version: str = "1.0.0"
     
     window_width: int = 1200
     window_height: int = 800

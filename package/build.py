@@ -36,7 +36,6 @@ def build():
         import json
         default_config = {
             "app_name": "OpenHarmony File Browser",
-            "app_version": "0.1.0",
             "window_width": 1200,
             "window_height": 800,
             "log_level": "INFO",

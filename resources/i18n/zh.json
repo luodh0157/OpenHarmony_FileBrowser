@@ -1,6 +1,6 @@
 {
   "app_name": "OpenHarmony 文件浏览器",
-  "app_version": "v0.1.0",
+  "author": "作者: luodh0157",
 
   "menu": {
     "file": "文件",
@@ -101,7 +101,7 @@
     "deleted_items": "已删除 {count} 个项目",
 
     "about_title": "关于 OpenHarmony 文件浏览器",
-    "about_text": "<h3>{app_name}</h3><p>版本: {version}</p><p>跨平台的 OpenHarmony/HarmonyOS 设备文件浏览器。</p><p>许可证: Apache 2.0</p>",
+    "about_text": "<h3>{app_name}</h3><p>版本: {version}</p><p>跨平台的 OpenHarmony/HarmonyOS 设备文件浏览器。</p><p>许可证: Apache 2.0</p><p>项目地址: <a href=\"{project_url}\">{project_url}</a></p>",
 
     "hdc_not_found": "未找到 HDC 工具",
     "hdc_not_found_text": "初始化 HDC 包装器失败:\n{error}\n\n请确保 HDC 工具已放置在正确的目录中。"

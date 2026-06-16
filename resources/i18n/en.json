@@ -1,6 +1,6 @@
 {
   "app_name": "OpenHarmony File Browser",
-  "app_version": "v0.1.0",
+  "author": "Author: luodh0157",
 
   "menu": {
     "file": "File",
@@ -101,7 +101,7 @@
     "deleted_items": "Deleted {count} items",
 
     "about_title": "About OpenHarmony File Browser",
-    "about_text": "<h3>{app_name}</h3><p>Version: {version}</p><p>A cross-platform file browser for OpenHarmony/HarmonyOS devices.</p><p>License: Apache 2.0</p>",
+    "about_text": "<h3>{app_name}</h3><p>Version: {version}</p><p>A cross-platform file browser for OpenHarmony/HarmonyOS devices.</p><p>License: Apache 2.0</p><p>Project: <a href=\"{project_url}\">{project_url}</a></p>",
 
     "hdc_not_found": "HDC Tool Not Found",
     "hdc_not_found_text": "Failed to initialize HDC wrapper:\n{error}\n\nPlease ensure HDC tool is placed in the correct directory."

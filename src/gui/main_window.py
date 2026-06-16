@@ -18,6 +18,8 @@ from src.utils.language_manager import language_manager
 
 logger = get_logger(__name__)
 
+PROJECT_URL = "https://gitcode.com/OpenHarmony_Tools/OpenHarmony_FileBrowser"
+
 
 def _create_checkmark_icon(color: str, size: int = 16) -> QIcon:
     """Create a checkmark icon with specified color."""
@@ -61,7 +63,7 @@ class MainWindow(QMainWindow):
         self.language_action: Optional[QAction] = None
         
         # Set window properties (minimal, no heavy widget creation yet)
-        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}")
+        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}  ({language_manager.tr('author')})")
         self.setMinimumSize(config.window_min_width, config.window_min_height)
         self.resize(config.window_width, config.window_height)
         
@@ -195,7 +197,7 @@ class MainWindow(QMainWindow):
     def _on_language_changed(self, language: str):
         """Handle language change."""
         # Update window title
-        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}")
+        self.setWindowTitle(f"{language_manager.tr('app_name')} {config.app_version}  ({language_manager.tr('author')})")
         
         # Update all UI texts
         self._update_ui_language()
@@ -500,11 +502,20 @@ class MainWindow(QMainWindow):
     
     def _show_about(self):
         """Show about dialog."""
-        QMessageBox.about(
-            self,
-            language_manager.tr('dialogs.about_title'),
-            language_manager.tr('dialogs.about_text', app_name=config.app_name, version=config.app_version),
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(language_manager.tr('dialogs.about_title'))
+        msg_box.setTextFormat(Qt.RichText)
+        msg_box.setText(
+            language_manager.tr('dialogs.about_text',
+                              app_name=config.app_name,
+                              version=config.app_version,
+                              project_url=PROJECT_URL)
         )
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        label = msg_box.findChild(QLabel)
+        if label:
+            label.setOpenExternalLinks(True)
+        msg_box.exec()
     
     def closeEvent(self, event):
         """Handle close event."""

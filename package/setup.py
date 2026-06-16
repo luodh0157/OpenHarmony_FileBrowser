@@ -59,7 +59,7 @@ Examples:
   python package/setup.py --name --version
   
   # 安装到当前 Python 环境
-  pip install dist/openharmony_filebrowser-0.1.0.tar.gz
+  pip install dist/openharmony_filebrowser-1.0.0.tar.gz
 
 Troubleshooting:
   如果 bdist_wheel 报错 "invalid command"，请先安装 wheel：
@@ -90,6 +90,14 @@ if len(sys.argv) > 1 and 'bdist_wheel' in sys.argv:
 # 参数正常，继续导入 setuptools 并执行
 from setuptools import setup, find_packages
 
+
+def _get_version():
+    import re
+    with open("src/config.py") as f:
+        m = re.search(r'app_version:\s*str\s*=\s*"([^"]+)"', f.read())
+        return m.group(1) if m else "0.0.0"
+
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -98,7 +106,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="openharmony-filebrowser",
-    version="0.1.0",
+    version=_get_version(),
     author="OpenHarmony_FileBrowser Contributors",
     description="A cross-platform file browser for OpenHarmony/HarmonyOS devices",
     long_description=long_description,
