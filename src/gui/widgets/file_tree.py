@@ -312,7 +312,9 @@ class FileTreeWidget(QWidget):
                 target_path = (
                     f"{current_path}/{part}" if current_path != "/" else f"/{part}"
                 )
+                # fmt: off
                 remaining = parts[parts.index(part):]
+                # fmt: on
                 # Delay to let file_list populate cache first
                 self._load_and_expand(
                     current_item, target_path, remaining, delay_ms=150

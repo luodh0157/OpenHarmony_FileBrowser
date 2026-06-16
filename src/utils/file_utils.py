@@ -202,7 +202,9 @@ def format_permissions(permissions: str) -> str:
     file_type = permissions[0]
     perms = permissions[1:]
 
+    # fmt: off
     chunks = [perms[i:i + 3] for i in range(0, 9, 3)]
+    # fmt: on
 
     return f"{file_type} {chunks[0]} {chunks[1]} {chunks[2]}"
 
