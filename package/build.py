@@ -82,10 +82,10 @@ def build():
     
     try:
         PyInstaller.__main__.run(params)
-        print("\n✓ Build completed successfully!")
+        print("\n[OK] Build completed successfully!")
         print(f"Output directory: {project_root / 'dist' / 'OpenHarmonyFileBrowser'}")
     except Exception as e:
-        print(f"\n✗ Build failed: {e}")
+        print(f"\n[FAIL] Build failed: {e}")
         sys.exit(1)
 
 

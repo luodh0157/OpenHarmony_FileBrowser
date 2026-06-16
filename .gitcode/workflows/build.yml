@@ -32,7 +32,7 @@ jobs:
         run: |
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
-          yum install -y mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
+          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
 
       - name: Configure pip mirror
         run: |
