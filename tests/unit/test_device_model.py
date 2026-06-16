@@ -2,7 +2,6 @@
 Unit tests for device model (src/models/device.py).
 """
 
-import pytest
 from src.models.device import DeviceInfo, DeviceStatus
 
 

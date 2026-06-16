@@ -14,8 +14,8 @@ from PySide6.QtWidgets import (
     QStyle,
     QMessageBox,
 )
-from PySide6.QtCore import Qt, Signal, QMimeData, QSize
-from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QIcon, QKeySequence
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QKeySequence
 
 from src.core.hdc_wrapper import HDCWrapper
 from src.core.file_operations import FileOperations
@@ -27,7 +27,6 @@ from src.gui.widgets.path_bar import PathBarWidget
 from src.gui.widgets.dialogs import (
     RenameDialog,
     CreateFolderDialog,
-    DeleteConfirmDialog,
     show_error_dialog,
     show_success_dialog,
 )

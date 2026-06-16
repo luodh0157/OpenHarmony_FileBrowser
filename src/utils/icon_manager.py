@@ -5,7 +5,7 @@
 
 import sys
 from pathlib import Path
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSize, QObject, Signal
 
 _resource_cache = {}

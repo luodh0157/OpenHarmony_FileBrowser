@@ -4,10 +4,9 @@ Provides interface to communicate with OpenHarmony/HarmonyOS devices.
 """
 
 import subprocess
-import re
 import platform
 from pathlib import Path
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Dict
 from datetime import datetime
 
 from ..models.device import DeviceInfo, DeviceStatus

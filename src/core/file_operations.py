@@ -3,11 +3,10 @@ File operations core for OpenHarmony File Browser.
 Provides file browsing and basic file operations.
 """
 
-from typing import List, Optional
-from pathlib import Path
+from typing import List
 
 from .hdc_wrapper import HDCWrapper, HDCError
-from ..models.file_info import FileInfo, FileType
+from ..models.file_info import FileInfo
 from ..utils.logger import get_logger
 from ..utils.directory_cache import DirectoryCache
 

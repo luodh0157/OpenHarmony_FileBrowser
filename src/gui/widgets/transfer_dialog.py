@@ -3,14 +3,13 @@ Transfer dialog for OpenHarmony File Browser.
 Displays transfer progress and status.
 """
 
-from typing import List, Dict
+from typing import Dict
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QWidget,
-    QProgressBar,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,

@@ -2,7 +2,6 @@
 Unit tests for transfer manager (src/core/transfer_manager.py).
 """
 
-import pytest
 from src.core.transfer_manager import (
     TransferDirection,
     TransferStatus,

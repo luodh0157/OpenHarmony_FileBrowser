@@ -2,7 +2,6 @@
 Unit tests for file utilities (src/utils/file_utils.py).
 """
 
-import pytest
 from src.utils.file_utils import (
     get_file_type,
     get_file_icon,
@@ -11,12 +10,6 @@ from src.utils.file_utils import (
     is_image_file,
     is_video_file,
     is_previewable,
-    IMAGE_EXTENSIONS,
-    VIDEO_EXTENSIONS,
-    AUDIO_EXTENSIONS,
-    DOCUMENT_EXTENSIONS,
-    ARCHIVE_EXTENSIONS,
-    CODE_EXTENSIONS,
 )
 
 

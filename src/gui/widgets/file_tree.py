@@ -9,12 +9,10 @@ from PySide6.QtWidgets import (
     QTreeWidgetItem,
     QWidget,
     QVBoxLayout,
-    QLabel,
     QStyle,
     QHeaderView,
 )
 from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QIcon
 
 from src.core.file_operations import FileOperations
 from src.core.hdc_wrapper import HDCWrapper
@@ -314,7 +312,7 @@ class FileTreeWidget(QWidget):
                 target_path = (
                     f"{current_path}/{part}" if current_path != "/" else f"/{part}"
                 )
-                remaining = parts[parts.index(part) :]
+                remaining = parts[parts.index(part):]
                 # Delay to let file_list populate cache first
                 self._load_and_expand(
                     current_item, target_path, remaining, delay_ms=150

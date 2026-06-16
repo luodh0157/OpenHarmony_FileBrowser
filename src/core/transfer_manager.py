@@ -12,7 +12,6 @@ from PySide6.QtCore import QObject, Signal, QThread
 
 from src.core.hdc_wrapper import HDCWrapper, HDCError
 from src.utils.logger import get_logger
-from src.config import config
 
 logger = get_logger(__name__)
 
@@ -126,7 +125,6 @@ class TransferWorker(QThread):
         """Upload file or directory to device."""
         try:
             from pathlib import Path
-            import os
 
             local_path = Path(self.task.local_path)
 
@@ -181,8 +179,6 @@ class TransferWorker(QThread):
                         self.task.device_id, self.task.remote_path
                     )
                     if stat_info.modified_time:
-                        from datetime import datetime
-
                         self.task.original_mtime = stat_info.modified_time.timestamp()
                         logger.debug(f"Original mtime: {stat_info.modified_time}")
                 except Exception as e:
@@ -233,7 +229,6 @@ class TransferWorker(QThread):
     def _restore_directory_timestamps(self, dir_path):
         """Recursively restore timestamps for all files in directory."""
         import os
-        from pathlib import Path
 
         for item in dir_path.rglob("*"):
             if item.is_file():
@@ -251,7 +246,7 @@ class TransferWorker(QThread):
                         if stat_info.modified_time:
                             mtime = stat_info.modified_time.timestamp()
                             os.utime(str(item), (mtime, mtime))
-                    except:
+                    except Exception:
                         # If can't get remote timestamp, use original directory timestamp
                         if self.task.original_mtime:
                             os.utime(

@@ -23,7 +23,7 @@ class TestModelIntegration:
 
     def test_device_info_with_file_info(self):
         from src.models.device import DeviceInfo, DeviceStatus
-        from src.models.file_info import FileInfo, FileType
+        from src.models.file_info import FileInfo
 
         device = DeviceInfo(
             device_id="test_device",
@@ -40,7 +40,7 @@ class TestModelIntegration:
         assert file_info.display_size == "1.00 KB"
 
     def test_file_info_uses_file_utils(self):
-        from src.models.file_info import FileInfo, FileType
+        from src.models.file_info import FileInfo
 
         file_info = FileInfo(
             name="photo.jpg",
@@ -119,9 +119,7 @@ class TestCoreIntegration:
     def test_transfer_manager_standalone(self):
         from src.core.transfer_manager import (
             TransferManager,
-            TransferTask,
             TransferDirection,
-            TransferStatus,
         )
 
         manager = TransferManager(max_workers=2)
@@ -247,14 +245,11 @@ class TestEndToEnd:
 
     def test_full_import_chain(self):
         """Test that all major modules can be imported without error."""
-        from src.models.device import DeviceInfo, DeviceStatus
-        from src.models.file_info import FileInfo, FileType
-        from src.config import Config, config
+        from src.models.device import DeviceStatus
+        from src.models.file_info import FileType
+        from src.config import config
         from src.utils.file_utils import get_file_type, format_file_size
         from src.utils.platform_utils import get_platform, get_architecture
-        from src.core.file_operations import FileOperations
-        from src.core.transfer_manager import TransferManager, TransferTask
-        from src.core.preview_handler import PreviewHandler
 
         assert DeviceStatus.CONNECTED.value == "connected"
         assert FileType.FILE.value == "file"
@@ -267,17 +262,6 @@ class TestEndToEnd:
     def test_gui_import_chain(self, qapp):
         """Test that all GUI modules can be imported and instantiated."""
         from src.gui.main_window import MainWindow
-        from src.gui.widgets.file_browser import FileBrowserWidget
-        from src.gui.widgets.file_tree import FileTreeWidget
-        from src.gui.widgets.file_list import FileListWidget
-        from src.gui.widgets.path_bar import PathBarWidget
-        from src.gui.widgets.dialogs import (
-            RenameDialog,
-            CreateFolderDialog,
-            DeleteConfirmDialog,
-        )
-        from src.gui.widgets.transfer_dialog import TransferDialog
-        from src.gui.widgets.preview_window import PreviewWindow
 
         window = MainWindow()
         window.close()

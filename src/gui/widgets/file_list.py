@@ -12,8 +12,6 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QLabel,
     QCheckBox,
-    QStyle,
-    QHBoxLayout,
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QColor
@@ -519,7 +517,8 @@ class FileListWidget(QWidget):
         self.table.blockSignals(False)
         self.selection_changed.emit()
         logger.debug(
-            f"Item clicked: row={row}, col={col}, previously_selected={is_currently_selected}, ctrl={has_ctrl}, shift={has_shift}"
+            f"Item clicked: row={row}, col={col}, prev={is_currently_selected}, "
+            f"ctrl={has_ctrl}, shift={has_shift}"
         )
 
     def _on_item_double_clicked(self, item: QTableWidgetItem):

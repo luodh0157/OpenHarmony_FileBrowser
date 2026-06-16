@@ -5,8 +5,6 @@
 
 import sys
 from pathlib import Path
-from typing import Optional
-import json
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow

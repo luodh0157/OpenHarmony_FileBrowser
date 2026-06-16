@@ -3,7 +3,7 @@ File utilities for OpenHarmony File Browser.
 Provides file type detection and formatting functions.
 """
 
-from typing import Dict, Optional
+from typing import Dict
 from pathlib import Path
 
 FILE_TYPE_ICONS: Dict[str, str] = {
@@ -202,7 +202,7 @@ def format_permissions(permissions: str) -> str:
     file_type = permissions[0]
     perms = permissions[1:]
 
-    chunks = [perms[i : i + 3] for i in range(0, 9, 3)]
+    chunks = [perms[i:i + 3] for i in range(0, 9, 3)]
 
     return f"{file_type} {chunks[0]} {chunks[1]} {chunks[2]}"
 

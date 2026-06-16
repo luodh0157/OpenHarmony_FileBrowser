@@ -10,17 +10,13 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QComboBox,
-    QPushButton,
     QMessageBox,
-    QStyle,
     QToolBar,
 )
 from PySide6.QtCore import Qt, Signal, QSize, QTimer
 from PySide6.QtGui import (
     QAction,
     QKeySequence,
-    QStandardItemModel,
-    QStandardItem,
     QColor,
     QIcon,
     QPixmap,
@@ -351,7 +347,7 @@ class MainWindow(QMainWindow):
                 translated = language_manager.tr("status.items", count=count)
                 self.file_count_label.setText(translated)
                 return
-        except:
+        except Exception:
             pass
 
         # Check if it's a path status message
@@ -364,7 +360,7 @@ class MainWindow(QMainWindow):
                         language_manager.tr("status.items", count=count)
                     )
                     return
-                except:
+                except Exception:
                     pass
 
         self.file_count_label.setText(message)
@@ -374,8 +370,9 @@ class MainWindow(QMainWindow):
         self._device_status_id = device_id
         self._device_status_name = device_name
         if device_id and device_name:
+            text = language_manager.tr("status.connected", device_name=device_name)
             self.device_label_status.setText(
-                f"<span style='color: #3FB950;'>{language_manager.tr('status.connected', device_name=device_name)}</span>"
+                f"<span style='color: #3FB950;'>{text}</span>"
             )
         else:
             self.device_label_status.setText(language_manager.tr("status.no_device"))

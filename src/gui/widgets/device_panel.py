@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QStyle,
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 
 from src.models.device import DeviceInfo, DeviceStatus
 from src.utils.logger import get_logger

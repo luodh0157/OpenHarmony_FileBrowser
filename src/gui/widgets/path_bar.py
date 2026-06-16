@@ -3,13 +3,11 @@ Path navigation bar for OpenHarmony File Browser.
 Displays breadcrumb navigation for current path.
 """
 
-from typing import Optional
 from PySide6.QtWidgets import (
     QWidget,
     QHBoxLayout,
     QPushButton,
     QLineEdit,
-    QLabel,
     QStyle,
     QCheckBox,
 )

@@ -3,14 +3,11 @@ File operation dialogs for OpenHarmony File Browser.
 Provides dialogs for rename, create folder, delete, etc.
 """
 
-from typing import Optional
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
     QDialogButtonBox,
     QMessageBox,
     QFormLayout,

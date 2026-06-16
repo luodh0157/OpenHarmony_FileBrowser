@@ -2,7 +2,6 @@
 Unit tests for file info model (src/models/file_info.py).
 """
 
-import pytest
 from datetime import datetime
 from src.models.file_info import FileInfo, FileType
 

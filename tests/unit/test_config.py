@@ -2,7 +2,6 @@
 Unit tests for configuration (src/config.py).
 """
 
-import pytest
 import json
 from pathlib import Path
 from src.config import Config

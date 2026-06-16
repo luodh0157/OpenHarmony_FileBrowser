@@ -4,7 +4,6 @@ Displays image and video previews.
 """
 
 from typing import Optional
-from pathlib import Path
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -13,9 +12,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QWidget,
-    QMessageBox,
 )
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QImage, QFont
 
 from src.core.preview_handler import PreviewHandler
@@ -319,7 +317,7 @@ class PreviewWindow(QDialog):
         )
 
         if success:
-            logger.info(f"Video opened with system player")
+            logger.info("Video opened with system player")
         else:
             show_warning_dialog(
                 language_manager.tr("dialogs.error_title"),

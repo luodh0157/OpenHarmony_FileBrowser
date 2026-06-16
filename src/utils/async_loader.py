@@ -2,11 +2,9 @@
 异步目录加载线程 - 提升目录浏览性能
 """
 
-from typing import List
 from PySide6.QtCore import QThread, Signal
 
 from src.core.file_operations import FileOperations
-from src.models.file_info import FileInfo
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

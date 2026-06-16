@@ -173,7 +173,7 @@ class PreviewHandler:
             else:  # Linux
                 subprocess.run(["xdg-open", local_path], check=False)
 
-            logger.info(f"Video opened successfully")
+            logger.info("Video opened successfully")
 
             return True
 

@@ -2,11 +2,9 @@
 异步文件树加载线程 - 避免展开目录时阻塞UI
 """
 
-from typing import List
 from PySide6.QtCore import QThread, Signal
 
 from src.core.file_operations import FileOperations
-from src.models.file_info import FileInfo
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

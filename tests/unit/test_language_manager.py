@@ -2,8 +2,6 @@
 Unit tests for language manager (src/utils/language_manager.py).
 """
 
-import pytest
-import json
 from pathlib import Path
 from src.utils.language_manager import LanguageManager
 

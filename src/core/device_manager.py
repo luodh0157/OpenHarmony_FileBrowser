@@ -4,13 +4,12 @@ Manages device connections, status monitoring, and device information.
 """
 
 from typing import List, Optional, Dict
-from PySide6.QtCore import QObject, Signal, QTimer, QThread
+from PySide6.QtCore import QObject, Signal, QThread
 from PySide6.QtWidgets import QApplication
 
 from .hdc_wrapper import HDCWrapper, HDCError
 from ..models.device import DeviceInfo, DeviceStatus
 from ..utils.logger import get_logger
-from ..config import config
 
 logger = get_logger(__name__)
 

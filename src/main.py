@@ -4,7 +4,6 @@ Main entry point for OpenHarmony File Browser.
 
 import sys
 import argparse
-from pathlib import Path
 
 from .config import config
 from .utils.logger import get_logger, set_global_log_level
@@ -37,7 +36,7 @@ def parse_args():
 def check_dependencies():
     """Check if all dependencies are available."""
     try:
-        import PySide6
+        import PySide6  # noqa: F401
 
         logger.debug("PySide6 is available")
     except ImportError as e:
@@ -46,7 +45,7 @@ def check_dependencies():
         return False
 
     try:
-        from PIL import Image
+        from PIL import Image  # noqa: F401
 
         logger.debug("Pillow is available")
     except ImportError as e:
@@ -109,7 +108,7 @@ def main():
         window.show()
 
         logger.info("Application started successfully")
-        logger.info(f"Phase 2 GUI initialized")
+        logger.info("Phase 2 GUI initialized")
 
         if hdc_available:
             logger.info("HDC tool available, device monitoring active")

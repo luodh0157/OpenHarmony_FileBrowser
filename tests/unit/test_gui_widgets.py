@@ -108,7 +108,6 @@ class TestFileListWidget:
     def test_get_selected_files(self, qapp):
         from src.gui.widgets.file_list import FileListWidget, CustomCheckBox
         from src.models.file_info import FileInfo, FileType
-        from datetime import datetime
 
         widget = FileListWidget()
         test_files = [

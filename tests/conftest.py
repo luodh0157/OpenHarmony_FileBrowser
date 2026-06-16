@@ -198,7 +198,7 @@ def mock_icons_dir(tmp_path):
     ]
 
     for name in icon_names:
-        svg_content = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>'
+        svg_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>'
         (light_dir / f"{name}.svg").write_text(svg_content)
         (dark_dir / f"{name}.svg").write_text(svg_content)
 
