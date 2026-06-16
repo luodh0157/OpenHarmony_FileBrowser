@@ -263,7 +263,7 @@ class FileListWidget(QWidget):
         self._hide_loading()
         logger.info("Device cleared from file list")
     
-    def load_directory(self, path: str):
+    def load_directory(self, path: str, show_hidden: bool = True):
         """Load and display files asynchronously."""
         if not self.file_ops:
             return
@@ -283,9 +283,9 @@ class FileListWidget(QWidget):
         
         self.current_path = path
         self._show_loading()
-        logger.info(f"Loading directory asynchronously: {path}")
+        logger.info(f"Loading directory asynchronously: {path} (show_hidden={show_hidden})")
         
-        self.load_thread = DirectoryLoadThread(self.file_ops, path)
+        self.load_thread = DirectoryLoadThread(self.file_ops, path, show_hidden=show_hidden)
         self.load_thread.loaded.connect(self._on_directory_loaded)
         self.load_thread.error.connect(self._on_load_error)
         self.load_thread.start()
@@ -330,6 +330,9 @@ class FileListWidget(QWidget):
     
     def _on_directory_loaded(self, files: List[FileInfo]):
         """Handle directory loaded event (async callback)."""
+        if self.sender() is not self.load_thread:
+            logger.debug("Ignoring stale load result from previous thread")
+            return
         self.files = files
         self._display_files()
         self._hide_loading()
@@ -505,21 +508,19 @@ class FileListWidget(QWidget):
     
     def get_selected_files(self) -> List[FileInfo]:
         """Get all selected files (from checkboxes)."""
+        file_map = {f.path: f for f in self.files}
         selected_files = []
         
         for row in range(self.table.rowCount()):
             checkbox = self.table.cellWidget(row, 0)
             if checkbox and checkbox.isChecked():
                 path = checkbox.property("path")
-                for file_info in self.files:
-                    if file_info.path == path:
-                        selected_files.append(file_info)
-                        break
+                if path in file_map:
+                    selected_files.append(file_map[path])
         
-        logger.info(f"Selected {len(selected_files)} files via checkboxes")
         return selected_files
     
-    def refresh(self):
+    def refresh(self, show_hidden: bool = True):
         """Refresh current directory."""
-        self.load_directory(self.current_path)
+        self.load_directory(self.current_path, show_hidden=show_hidden)
         logger.info("File list refreshed")

@@ -332,13 +332,15 @@ MainWindow._init_device_manager_later()
 用户点击 FileTree 中的目录
   → directory_selected 信号
   → FileBrowserWidget._on_directory_selected(path)
-    → FileListWidget.load_directory(path)
-      → DirectoryLoadThread (异步)
-        → FileOperations.list_directory(path)
-          → HDCWrapper.shell_ls(device_id, path)
-            → subprocess.run(["hdc", "-t", device_id, "shell", "ls", "-l", path])
+    → FileListWidget.load_directory(path, show_hidden)
+      → DirectoryLoadThread (异步, 携带 show_hidden)
+        → FileOperations.list_directory(path, show_hidden)
+          → HDCWrapper.shell_ls(device_id, path, show_hidden)
+            → subprocess.run(["hdc", "-t", device_id, "shell", "ls", "-l"] + (["-a"] if show_hidden else []) + [path])
             → _parse_ls_line() → FileInfo 对象列表
-      → loaded 信号 → _display_files()
+      → loaded 信号 → _on_directory_loaded()
+        → sender() 校验 (过滤旧线程的延迟信号)
+        → _display_files()
 ```
 
 ### 4.3 文件上传流程
@@ -366,14 +368,16 @@ MainWindow._init_device_manager_later()
       → MainWindow._on_theme_changed() (更新菜单图标)
 
 用户点击 视图 > 语言
-  → LanguageManager.toggle_language()
-    → load_translations() (加载 en.json 或 zh.json)
-    → save_preference()
-    → language_changed 信号
-      → MainWindow._on_language_changed()
-        → _update_ui_language()
-        → file_browser.update_language()
-          → tree/list/path_bar/transfer_dialog/preview_window.update_language()
+  → MainWindow._toggle_language()
+    → LanguageManager.toggle_language()
+      → load_translations() (加载 en.json 或 zh.json)
+      → save_preference()
+      → language_changed 信号 (无连接, 忽略)
+    → MainWindow._on_language_changed()
+      → _update_ui_language()
+        → update_device_status() (重绘状态栏, 保留已有设备信息)
+      → file_browser.update_language()
+        → tree/list/path_bar/transfer_dialog/preview_window.update_language()
 ```
 
 ## 5. 设计模式应用

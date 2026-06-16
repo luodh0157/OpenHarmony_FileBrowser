@@ -14,7 +14,7 @@ class TestLanguageManagerInit:
     def test_default_language_is_english(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         # 默认语言从 config.json 读取（当前配置为 'zh'）
         assert lm.current_language in ["en", "zh"]
@@ -22,7 +22,7 @@ class TestLanguageManagerInit:
     def test_translations_loaded(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         assert len(lm.translations) > 0
 
@@ -33,7 +33,7 @@ class TestLanguageManagerSetLanguage:
     def test_set_to_chinese(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("zh")
         assert lm.current_language == "zh"
@@ -41,7 +41,7 @@ class TestLanguageManagerSetLanguage:
     def test_set_to_english(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("zh")
         lm.set_language("en")
@@ -50,7 +50,7 @@ class TestLanguageManagerSetLanguage:
     def test_invalid_language_ignored(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("fr")
         assert lm.current_language == "en"
@@ -58,7 +58,7 @@ class TestLanguageManagerSetLanguage:
     def test_same_language_no_change(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("en")
         assert lm.current_language == "en"
@@ -70,7 +70,7 @@ class TestLanguageManagerToggle:
     def test_toggle_en_to_zh(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.toggle_language()
         assert lm.current_language == "zh"
@@ -78,7 +78,7 @@ class TestLanguageManagerToggle:
     def test_toggle_zh_to_en(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("zh")
         lm.toggle_language()
@@ -91,14 +91,14 @@ class TestLanguageManagerTranslation:
     def test_simple_translation_en(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         assert lm.tr("toolbar.refresh") == "Refresh"
 
     def test_simple_translation_zh(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("zh")
         assert lm.tr("toolbar.refresh") == "刷新"
@@ -106,7 +106,7 @@ class TestLanguageManagerTranslation:
     def test_translation_with_variable(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         result = lm.tr("dialogs.delete_confirm", count=3)
         assert "3" in result
@@ -114,7 +114,7 @@ class TestLanguageManagerTranslation:
     def test_missing_key_returns_key(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         assert lm.tr("nonexistent.key") == "nonexistent.key"
 
@@ -125,7 +125,7 @@ class TestLanguageManagerGetName:
     def test_english_name(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("en")  # 先设置为英文
         assert lm.get_language_name() == "English"
@@ -133,7 +133,7 @@ class TestLanguageManagerGetName:
     def test_chinese_name(self, mock_i18n_dir, monkeypatch):
         monkeypatch.setattr(Path, "home", lambda: mock_i18n_dir.parent)
         lm = LanguageManager()
-        lm.i18n_dir = mock_i18n_dir
+        lm._i18n_dir = mock_i18n_dir
         lm.load_translations()
         lm.set_language("zh")
         assert lm.get_language_name() == "中文"

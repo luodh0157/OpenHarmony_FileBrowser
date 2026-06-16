@@ -256,8 +256,8 @@ class FileTreeWidget(QWidget):
         for item in items:
             item_path = item.data(0, Qt.UserRole)
             if item_path == path:
-                for i in range(item.childCount()):
-                    item.takeChild(i)
+                while item.childCount() > 0:
+                    item.takeChild(0)
                 
                 self._load_directory_contents_async(path, item, delay_ms=100)
                 

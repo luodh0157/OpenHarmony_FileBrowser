@@ -69,6 +69,17 @@ class DeviceInfo:
             return self.device_id
     
     @property
+    def compact_display_name(self) -> str:
+        """Get compact display name with truncated device_id and model."""
+        if len(self.device_id) > 16:
+            short_id = f"{self.device_id[:6]}...{self.device_id[-6:]}"
+        else:
+            short_id = self.device_id
+        if self.model:
+            return f"{short_id} ({self.model})"
+        return short_id
+
+    @property
     def is_ready(self) -> bool:
         """Check if device is ready for operations."""
         return self.status == DeviceStatus.CONNECTED

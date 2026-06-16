@@ -161,18 +161,6 @@ QTreeWidget::item:hover {
     background-color: #161B22;
 }
 
-QTreeWidget::branch {
-    background: transparent;
-}
-
-QTreeWidget::branch:has-children:!open {
-    image: none;
-}
-
-QTreeWidget::branch:open:has-children {
-    image: none;
-}
-
 /* Table Widget */
 QTableWidget {
     background-color: #0D1117;

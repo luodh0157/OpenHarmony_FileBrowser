@@ -29,16 +29,7 @@ if %errorlevel% neq 0 (
 echo Python: python
 echo.
 
-REM Check if virtual environment exists
-if exist "venv\Scripts\activate.bat" (
-    call venv\Scripts\activate.bat
-    set PYTHON=python
-) else if exist ".venv\Scripts\activate.bat" (
-    call .venv\Scripts\activate.bat
-    set PYTHON=python
-) else (
-    set PYTHON=python
-)
+set PYTHON=python
 
 for /f "tokens=*" %%i in ('%PYTHON% --version') do set PYVER=%%i
 echo Version: %PYVER%
@@ -128,6 +119,7 @@ REM Cleanup temporary files
 echo.
 echo Cleaning up temporary files...
 if exist ".pytest_cache" rmdir /s /q ".pytest_cache"
+
 if exist "htmlcov" rmdir /s /q "htmlcov"
 if exist ".coverage" del /q ".coverage"
 for /d /r . %%d in (__pycache__) do @if exist "%%d" rmdir /s /q "%%d"

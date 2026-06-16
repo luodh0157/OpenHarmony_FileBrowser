@@ -25,6 +25,7 @@ class PathBarWidget(QWidget):
     """
     
     path_changed = Signal(str)
+    show_hidden_changed = Signal(bool)
     select_all_changed = Signal(int)
     
     def __init__(self):
@@ -75,6 +76,11 @@ class PathBarWidget(QWidget):
         
         layout.addStretch()
         
+        self.show_hidden_checkbox = QCheckBox(language_manager.tr('path_bar.show_hidden'))
+        self.show_hidden_checkbox.setChecked(True)
+        self.show_hidden_checkbox.stateChanged.connect(self._on_show_hidden_changed)
+        layout.addWidget(self.show_hidden_checkbox)
+        
         self.select_all_checkbox = QCheckBox(language_manager.tr('path_bar.select_all'))
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
         layout.addWidget(self.select_all_checkbox)
@@ -83,6 +89,10 @@ class PathBarWidget(QWidget):
     
     def update_language(self):
         """Update all UI texts when language changes."""
+        # Update show hidden checkbox
+        if hasattr(self, 'show_hidden_checkbox'):
+            self.show_hidden_checkbox.setText(language_manager.tr('path_bar.show_hidden'))
+        
         # Update select all checkbox
         if hasattr(self, 'select_all_checkbox'):
             self.select_all_checkbox.setText(language_manager.tr('path_bar.select_all'))
@@ -161,6 +171,12 @@ class PathBarWidget(QWidget):
             self.path_changed.emit(path)
             
             logger.debug(f"Path input: {path}")
+    
+    def _on_show_hidden_changed(self, state):
+        """Handle show hidden checkbox state change."""
+        self.show_hidden_changed.emit(state == Qt.Checked.value)
+        
+        logger.debug(f"Show hidden changed: state={state}, Qt.Checked={Qt.Checked}")
     
     def _on_select_all_changed(self, state):
         """Handle select all checkbox state change."""

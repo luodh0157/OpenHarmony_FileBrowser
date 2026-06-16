@@ -51,6 +51,8 @@ class FileBrowserWidget(QWidget):
         self.preview_handler: Optional[PreviewHandler] = None
         self.preview_window: Optional[PreviewWindow] = None
         
+        self._show_hidden: bool = True
+        
         self._init_ui()
         
         self.setAcceptDrops(True)
@@ -65,6 +67,7 @@ class FileBrowserWidget(QWidget):
         
         self.path_bar = PathBarWidget()
         self.path_bar.path_changed.connect(self._on_path_changed)
+        self.path_bar.show_hidden_changed.connect(self._on_show_hidden_changed)
         self.path_bar.select_all_changed.connect(self._toggle_select_all)
         layout.addWidget(self.path_bar)
         
@@ -163,6 +166,15 @@ class FileBrowserWidget(QWidget):
         """Forward file list status message to main window."""
         self.status_message.emit(message)
     
+    def _on_show_hidden_changed(self, show: bool):
+        """Handle show hidden files checkbox change."""
+        self._show_hidden = show
+        if self.file_ops:
+            self.file_ops.cache.invalidate(self.current_path)
+        self.file_list.load_directory(self.current_path, show_hidden=show)
+        
+        logger.debug(f"Show hidden files: {show}")
+    
     def set_device(self, device_id: str, hdc: HDCWrapper):
         """Set device."""
         self.device_id = device_id
@@ -187,6 +199,12 @@ class FileBrowserWidget(QWidget):
         self.file_ops = None
         
         if self.transfer_manager:
+            try:
+                self.transfer_manager.transfer_progress.disconnect(self._on_transfer_progress)
+                self.transfer_manager.transfer_completed.disconnect(self._on_transfer_completed)
+                self.transfer_manager.all_transfers_completed.disconnect(self._on_all_transfers_completed)
+            except (TypeError, RuntimeError):
+                pass
             self.transfer_manager.cleanup()
         self.transfer_manager = None
         
@@ -207,13 +225,15 @@ class FileBrowserWidget(QWidget):
         self.path_bar.set_path("/")
         
         # file_tree.set_device() already called in set_device(), don't call again
-        self.file_list.load_directory("/")
+        self.file_list.load_directory("/", show_hidden=self._show_hidden)
     
     def _on_directory_selected(self, path: str):
         """Handle directory selection from tree."""
+        if self.current_path == path:
+            return
         self.current_path = path
         self.path_bar.set_path(path)
-        self.file_list.load_directory(path)
+        self.file_list.load_directory(path, show_hidden=self._show_hidden)
         
         # 发射状态更新信号
         self.status_message.emit(language_manager.tr('status.current_path', path=path))
@@ -233,7 +253,7 @@ class FileBrowserWidget(QWidget):
         self.path_bar.set_path(path)
         self.path_bar.blockSignals(False)
         
-        self.file_list.load_directory(path)
+        self.file_list.load_directory(path, show_hidden=self._show_hidden)
         
         # 发射状态更新信号
         self.status_message.emit(language_manager.tr('status.current_path', path=path))
@@ -258,7 +278,7 @@ class FileBrowserWidget(QWidget):
             self.path_bar.blockSignals(False)
             
             self.file_tree.expand_to_path(normalized)
-            self.file_list.load_directory(normalized)
+            self.file_list.load_directory(normalized, show_hidden=self._show_hidden)
             
             # 发射状态更新信号
             self.status_message.emit(language_manager.tr('status.current_path', path=normalized))
@@ -314,7 +334,7 @@ class FileBrowserWidget(QWidget):
         if self.file_ops:
             self.file_ops.cache.invalidate(self.current_path)
         
-        self.file_list.refresh()
+        self.file_list.refresh(show_hidden=self._show_hidden)
         
         # 发射状态更新信号
         self.status_message.emit(language_manager.tr('status.refreshed', path=self.current_path))
@@ -473,10 +493,9 @@ class FileBrowserWidget(QWidget):
     
     def _upload_file(self):
         """Upload files or folder to device."""
-        if not self.transfer_manager and self.hdc:
-            self.transfer_manager = TransferManager(self.hdc, max_workers=config.transfer_max_workers)
+        transfer_manager = self._ensure_transfer_manager()
         
-        if not self.transfer_manager or not self.file_ops:
+        if not transfer_manager or not self.file_ops:
             show_error_dialog(language_manager.tr('dialogs.error_title'), language_manager.tr('dialogs.no_device'), self)
             return
         
@@ -555,10 +574,9 @@ class FileBrowserWidget(QWidget):
     
     def _download_files(self):
         """Download selected files and directories (batch)."""
-        if not self.transfer_manager and self.hdc:
-            self.transfer_manager = TransferManager(self.hdc, max_workers=config.transfer_max_workers)
+        transfer_manager = self._ensure_transfer_manager()
         
-        if not self.transfer_manager or not self.file_ops:
+        if not transfer_manager or not self.file_ops:
             show_error_dialog(language_manager.tr('dialogs.error_title'), language_manager.tr('dialogs.no_device'), self)
             return
         
@@ -600,19 +618,27 @@ class FileBrowserWidget(QWidget):
             )
             logger.error(f"Failed to start download: {e}")
     
+    def _ensure_transfer_manager(self):
+        """Ensure transfer manager is initialized with signals connected (only once)."""
+        if self.transfer_manager is None and self.hdc:
+            self.transfer_manager = TransferManager(self.hdc, max_workers=config.transfer_max_workers)
+            self.transfer_manager.transfer_progress.connect(self._on_transfer_progress)
+            self.transfer_manager.transfer_completed.connect(self._on_transfer_completed)
+            self.transfer_manager.all_transfers_completed.connect(self._on_all_transfers_completed)
+        return self.transfer_manager
+
     def _start_transfer(self, local_paths: List[str], remote_paths: List[str], direction: TransferDirection):
         """Start batch transfer."""
-        if not self.transfer_manager and self.hdc:
-            self.transfer_manager = TransferManager(self.hdc, max_workers=config.transfer_max_workers)
+        transfer_manager = self._ensure_transfer_manager()
         
-        if not self.transfer_manager:
+        if not transfer_manager:
             return
         
         for local_path, remote_path in zip(local_paths, remote_paths):
             if direction == TransferDirection.UPLOAD:
-                self.transfer_manager.add_upload_task(self.device_id, local_path, remote_path)
+                transfer_manager.add_upload_task(self.device_id, local_path, remote_path)
             else:
-                self.transfer_manager.add_download_task(self.device_id, remote_path, local_path)
+                transfer_manager.add_download_task(self.device_id, remote_path, local_path)
         
         if not self.transfer_dialog:
             self.transfer_dialog = TransferDialog(self)
@@ -623,11 +649,7 @@ class FileBrowserWidget(QWidget):
         for task in self.transfer_manager.tasks:
             self.transfer_dialog.add_task(task)
         
-        self.transfer_manager.transfer_progress.connect(self._on_transfer_progress)
-        self.transfer_manager.transfer_completed.connect(self._on_transfer_completed)
-        self.transfer_manager.all_transfers_completed.connect(self._on_all_transfers_completed)
-        
-        self.transfer_manager.start_transfers()
+        transfer_manager.start_transfers()
         
         self.transfer_dialog.show()
     
@@ -666,10 +688,9 @@ class FileBrowserWidget(QWidget):
     
     def dropEvent(self, event: QDropEvent):
         """Handle drop."""
-        if not self.transfer_manager and self.hdc:
-            self.transfer_manager = TransferManager(self.hdc, max_workers=config.transfer_max_workers)
+        transfer_manager = self._ensure_transfer_manager()
         
-        if not self.transfer_manager or not self.file_ops:
+        if not transfer_manager or not self.file_ops:
             return
         
         urls = event.mimeData().urls()

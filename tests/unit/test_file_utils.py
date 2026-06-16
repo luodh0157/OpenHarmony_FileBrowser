@@ -111,7 +111,7 @@ class TestFormatPermissions:
     def test_valid_permissions(self):
         perms = "drwxr-xr-x"
         result = format_permissions(perms)
-        assert len(result) == 10
+        assert result == "d rwx r-x r-x"
 
     def test_short_permissions(self):
         perms = "rwx"

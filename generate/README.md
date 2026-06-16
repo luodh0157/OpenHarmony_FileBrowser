@@ -18,60 +18,60 @@ pip install Pillow
 ## 使用方式
 
 ```bash
-python generate/generate.py -i <输入文件> [-o <输出文件>] [选项]
+python generate/generate_icon.py -i <输入文件> [-o <输出文件>] [选项]
 ```
 
 ### 基本用法
 
 ```bash
 # 默认生成：同时生成 .ico 和 .icns（与输入文件同目录同名）
-python generate/generate.py -i app.png
+python generate/generate_icon.py -i app.png
 
 # 指定输出文件（只生成指定格式）
-python generate/generate.py -i app.png -o app.ico
-python generate/generate.py -i app.png -o app.icns
+python generate/generate_icon.py -i app.png -o app.ico
+python generate/generate_icon.py -i app.png -o app.icns
 
 # 指定输出路径
-python generate/generate.py -i app.png -o dist/icons/app.ico
+python generate/generate_icon.py -i app.png -o dist/icons/app.ico
 ```
 
 ### 自定义尺寸
 
 ```bash
 # 生成小尺寸 ICO（适合网页 favicon）
-python generate/generate.py -i logo.png -o favicon.ico --sizes 16 32
+python generate/generate_icon.py -i logo.png -o favicon.ico --sizes 16 32
 
 # 生成高清 ICO
-python generate/generate.py -i icon.png -o icon.ico --sizes 16 32 48 64 128 256 512
+python generate/generate_icon.py -i icon.png -o icon.ico --sizes 16 32 48 64 128 256 512
 ```
 
 ### 圆角图标
 
 ```bash
 # 默认圆角（20% 比例，类似 macOS 风格）
-python generate/generate.py -i app.png -o app.ico
+python generate/generate_icon.py -i app.png -o app.ico
 
 # 自定义圆角半径（比例 0-1）
-python generate/generate.py -i app.png -o app.ico --radius 0.3
+python generate/generate_icon.py -i app.png -o app.ico --radius 0.3
 
 # 自定义圆角半径（固定像素）
-python generate/generate.py -i app.png -o app.ico --radius 16
+python generate/generate_icon.py -i app.png -o app.ico --radius 16
 
 # 无圆角（正方形）
-python generate/generate.py -i app.png -o app.ico --radius 0
+python generate/generate_icon.py -i app.png -o app.ico --radius 0
 ```
 
 ### 其他格式输入
 
 ```bash
 # JPG 转 ICO
-python generate/generate.py -i logo.jpg -o logo.ico
+python generate/generate_icon.py -i logo.jpg -o logo.ico
 
 # WEBP 转 ICO
-python generate/generate.py -i icon.webp -o icon.ico
+python generate/generate_icon.py -i icon.webp -o icon.ico
 
 # SVG 转 ICO
-python generate/generate.py -i icon.svg -o icon.ico --sizes 16 32 48 64 128 256
+python generate/generate_icon.py -i icon.svg -o icon.ico --sizes 16 32 48 64 128 256
 ```
 
 ## 参数说明

@@ -7,8 +7,11 @@ import os
 import subprocess
 import platform
 import tempfile
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from pathlib import Path
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 from src.core.hdc_wrapper import HDCWrapper, HDCError
 from src.utils.file_utils import is_image_file, is_video_file
@@ -124,7 +127,7 @@ class PreviewHandler:
             Path(temp_file.name).unlink(missing_ok=True)
             return None
     
-    def open_image(self, local_path: str) -> Optional[bytes]:
+    def open_image(self, local_path: str) -> Optional["Image.Image"]:
         """
         Open image file for preview.
         
@@ -132,7 +135,7 @@ class PreviewHandler:
             local_path: Local image file path
         
         Returns:
-            Image data or None
+            PIL Image object or None
         """
         try:
             from PIL import Image

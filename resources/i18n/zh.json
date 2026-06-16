@@ -137,6 +137,7 @@
   },
 
   "path_bar": {
+    "show_hidden": "显示隐藏目录",
     "select_all": "全选",
     "deselect_all": "取消全选",
     "go_home": "跳转到根目录 (/)",

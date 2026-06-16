@@ -7,10 +7,10 @@ Supports:
   Output formats: ICO (Windows), ICNS (macOS)
 
 Usage:
-  python generate.py -i app.png                    # Generates app.ico and app.icns
-  python generate.py -i app.png -o app.ico          # Generates only app.ico
-  python generate.py -i app.png -o app.icns         # Generates only app.icns
-  python generate.py -i logo.jpg -o favicon.ico --sizes 16 32
+  python generate_icon.py -i app.png                    # Generates app.ico and app.icns
+  python generate_icon.py -i app.png -o app.ico          # Generates only app.ico
+  python generate_icon.py -i app.png -o app.icns         # Generates only app.icns
+  python generate_icon.py -i logo.jpg -o favicon.ico --sizes 16 32
 """
 
 import argparse

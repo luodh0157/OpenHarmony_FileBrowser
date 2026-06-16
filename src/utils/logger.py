@@ -10,6 +10,9 @@ from datetime import datetime
 from typing import Optional
 
 
+_logger_names: set[str] = set()
+
+
 def get_logger(
     name: str = "OpenHarmonyFileBrowser",
     log_file: Optional[str] = None,
@@ -27,6 +30,7 @@ def get_logger(
         Configured logger instance
     """
     logger = logging.getLogger(name)
+    _logger_names.add(name)
     
     if logger.handlers:
         return logger
@@ -59,7 +63,7 @@ def get_logger(
 
 def set_log_level(logger: logging.Logger, level: int) -> None:
     """
-    Set logging level for all handlers.
+    Set logging level for logger and all its handlers.
     
     Args:
         logger: Logger instance
@@ -68,3 +72,17 @@ def set_log_level(logger: logging.Logger, level: int) -> None:
     logger.setLevel(level)
     for handler in logger.handlers:
         handler.setLevel(level)
+
+
+def set_global_log_level(level: int) -> None:
+    """
+    Set global log level affecting all module loggers.
+    
+    Args:
+        level: Logging level
+    """
+    for name in _logger_names:
+        lg = logging.getLogger(name)
+        lg.setLevel(level)
+        for handler in lg.handlers:
+            handler.setLevel(level)

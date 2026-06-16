@@ -116,7 +116,7 @@ OpenHarmony_FileBrowser/
 │   ├── setup.py                     # Python 包安装配置
 │   └ README.md                      # 构建说明
 ├── generate/                        # 图标生成工具
-│   ├── generate.py                  # 图标生成脚本
+│   ├── generate_icon.py             # 图标生成脚本
 │   └ README.md                      # 使用说明
 ├── requirements.txt                 # 运行时依赖
 ├── requirements-dev.txt             # 开发依赖
@@ -228,7 +228,8 @@ Apache License 2.0
 ## 贡献
 
 欢迎提交 Pull Request 或 Issue！
+[OpenHarmony_FileBrowser](https://gitcode.com/OpenHarmony_Tools/OpenHarmony_FileBrowser)
 
 ## 支持
 
-如有问题或建议，请在 GitHub 上提交 Issue。
+如有问题或建议，请在 GitCode 上提交 Issue。

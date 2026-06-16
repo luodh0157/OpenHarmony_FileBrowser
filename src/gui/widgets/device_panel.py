@@ -82,9 +82,7 @@ class DevicePanel(QWidget):
         self.device_combo.addItem(no_device_text, None)
         
         for device in devices:
-            display_text = device.display_name or device.device_id
-            if device.model:
-                display_text = f"{device.model}"
+            display_text = device.model or device.device_id
             
             status_icon = self._get_status_icon(device.status)
             display_text = f"{status_icon} {display_text}  ▾"

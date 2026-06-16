@@ -189,12 +189,12 @@ class DeviceManager(QObject):
         try:
             devices = self.hdc.list_targets()
             
-            for device in devices:
+            for i in range(len(devices)):
                 try:
-                    full_info = self.hdc.get_device_info(device.device_id)
-                    device = full_info
+                    full_info = self.hdc.get_device_info(devices[i].device_id)
+                    devices[i] = full_info
                 except HDCError as e:
-                    logger.warning(f"Failed to get device info: {e}")
+                    logger.warning(f"Failed to get device info for {devices[i].device_id}: {e}")
             
             self.devices = devices
             self.devices_changed.emit(devices)

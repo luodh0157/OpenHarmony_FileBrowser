@@ -36,7 +36,11 @@ DOCUMENT_EXTENSIONS = {
 }
 
 ARCHIVE_EXTENSIONS = {
-    ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".tar.gz", ".tar.bz2"
+    ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"
+}
+
+ARCHIVE_COMPOUND_EXTENSIONS = {
+    ".tar.gz", ".tar.bz2", ".tar.xz"
 }
 
 CODE_EXTENSIONS = {
@@ -61,7 +65,10 @@ def get_file_type(file_name: str, is_dir: bool = False) -> str:
     if is_dir:
         return "folder"
     
-    ext = Path(file_name).suffix.lower()
+    path_obj = Path(file_name)
+    suffixes = [s.lower() for s in path_obj.suffixes]
+    ext = suffixes[-1] if suffixes else ""
+    compound_ext = "".join(suffixes[-2:]) if len(suffixes) >= 2 else ""
     
     if ext in IMAGE_EXTENSIONS:
         return "image"
@@ -71,7 +78,7 @@ def get_file_type(file_name: str, is_dir: bool = False) -> str:
         return "audio"
     elif ext in DOCUMENT_EXTENSIONS:
         return "document"
-    elif ext in ARCHIVE_EXTENSIONS:
+    elif compound_ext in ARCHIVE_COMPOUND_EXTENSIONS or ext in ARCHIVE_EXTENSIONS:
         return "archive"
     elif ext in CODE_EXTENSIONS:
         return "code"
@@ -119,7 +126,7 @@ def format_permissions(permissions: str) -> str:
         permissions: Permission string (e.g., 'drwxr-xr-x')
     
     Returns:
-        Formatted permission string
+        Formatted permission string with spaced groups (e.g., 'd rwx r-x r-x')
     """
     if not permissions or len(permissions) < 10:
         return permissions
@@ -127,14 +134,9 @@ def format_permissions(permissions: str) -> str:
     file_type = permissions[0]
     perms = permissions[1:]
     
-    result = file_type
+    chunks = [perms[i:i+3] for i in range(0, 9, 3)]
     
-    for i in range(0, 9, 3):
-        chunk = perms[i:i+3]
-        for char in chunk:
-            result += char if char != '-' else '-'
-    
-    return result
+    return f"{file_type} {chunks[0]} {chunks[1]} {chunks[2]}"
 
 
 def is_image_file(file_name: str) -> bool:

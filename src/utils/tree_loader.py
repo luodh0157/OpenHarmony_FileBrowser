@@ -49,6 +49,8 @@ class TreeLoadThread(QThread):
             if not self.is_cancelled:
                 logger.error(f"Failed to load tree directories {self.path}: {e}")
                 self.error.emit(str(e))
+        finally:
+            self.deleteLater()
     
     def cancel(self):
         self.is_cancelled = True

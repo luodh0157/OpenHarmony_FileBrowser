@@ -5,11 +5,9 @@ Main entry point for OpenHarmony File Browser.
 import sys
 import argparse
 from pathlib import Path
-from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import Qt
 
 from .config import config
-from .utils.logger import get_logger, set_log_level
+from .utils.logger import get_logger, set_global_log_level
 from .utils.platform_utils import get_platform_info
 
 
@@ -40,7 +38,7 @@ def parse_args():
 def check_dependencies():
     """Check if all dependencies are available."""
     try:
-        from PySide6.QtWidgets import QApplication
+        import PySide6
         logger.debug("PySide6 is available")
     except ImportError as e:
         print(f"Error: PySide6 is not installed: {e}")
@@ -72,16 +70,9 @@ def check_hdc():
 
 def main():
     """Main entry point."""
-    # 确保日志目录存在
-    from .config import config
     config.log_dir.mkdir(parents=True, exist_ok=True)
     
     args = parse_args()
-    
-    if args.debug:
-        import logging
-        set_log_level(logger, logging.DEBUG)
-        logger.debug("Debug mode enabled")
     
     logger.info(f"Starting {config.app_name} v{config.app_version}")
     logger.debug(f"Platform info: {get_platform_info()}")
@@ -96,12 +87,20 @@ def main():
         )
     
     try:
+        from PySide6.QtWidgets import QApplication
+        
         app = QApplication(sys.argv)
         app.setApplicationName(config.app_name)
         app.setApplicationVersion(config.app_version)
         app.setOrganizationName("OpenHarmony")
         
         from .gui.main_window import MainWindow
+        
+        # 所有模块已加载，日志器已注册，此时统一设日志级别
+        if args.debug:
+            import logging
+            set_global_log_level(logging.DEBUG)
+            logger.debug("Debug mode enabled")
         
         window = MainWindow()
         window.show()

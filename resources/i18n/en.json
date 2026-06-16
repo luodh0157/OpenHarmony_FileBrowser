@@ -137,6 +137,7 @@
   },
 
   "path_bar": {
+    "show_hidden": "Show Hidden",
     "select_all": "Select All",
     "deselect_all": "Deselect All",
     "go_home": "Go to root directory (/)",

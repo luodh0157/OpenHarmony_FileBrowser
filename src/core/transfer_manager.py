@@ -132,40 +132,26 @@ class TransferWorker(QThread):
             if not local_path.exists():
                 raise HDCError(f"Local path not found: {self.task.local_path}")
             
-            # 1. Get local file's timestamp (before upload)
             if self.task.preserve_timestamp:
                 if local_path.is_file():
                     self.task.original_mtime = local_path.stat().st_mtime
                     logger.debug(f"Local file mtime: {self.task.original_mtime}")
                 elif local_path.is_dir():
-                    # For directories, record upload start time (can't recursively get all file times)
                     self.task.original_mtime = None
             
-            # 2. Set file size
             if local_path.is_file():
                 self.task.total_size = local_path.stat().st_size
             else:
-                # Calculate directory total size
                 self.task.total_size = sum(f.stat().st_size for f in local_path.rglob('*') if f.is_file())
             
             logger.debug(f"Uploading: {self.task.local_path}")
             
-            # 3. Execute upload
             self.hdc.file_send(
                 self.task.device_id,
                 self.task.local_path,
                 self.task.remote_path,
                 preserve_timestamp=self.task.preserve_timestamp
             )
-            
-            # 4. Try to set remote file timestamp (after upload)
-            # Note: HDC may not support directly setting timestamp, this is an attempt
-            if self.task.preserve_timestamp and self.task.original_mtime:
-                try:
-                    # Try to set timestamp via shell touch command (if device supports)
-                    logger.info(f"Attempted to preserve remote file timestamp")
-                except Exception as e:
-                    logger.warning(f"Could not set remote timestamp (HDC limitation): {e}")
             
             self.task.transferred_size = self.task.total_size
             
@@ -176,6 +162,8 @@ class TransferWorker(QThread):
                 0
             )
         
+        except HDCError:
+            raise
         except Exception as e:
             raise HDCError(f"Upload failed: {e}")
     
@@ -187,12 +175,10 @@ class TransferWorker(QThread):
             
             local_path = Path(self.task.local_path)
             
-            # 1. Get remote file's original timestamp (before download)
             if self.task.preserve_timestamp:
                 try:
                     stat_info = self.hdc.shell_stat(self.task.device_id, self.task.remote_path)
                     if stat_info.modified_time:
-                        # Convert datetime to Unix timestamp
                         from datetime import datetime
                         self.task.original_mtime = stat_info.modified_time.timestamp()
                         logger.debug(f"Original mtime: {stat_info.modified_time}")
@@ -200,13 +186,11 @@ class TransferWorker(QThread):
                     logger.warning(f"Failed to get remote file timestamp: {e}")
                     self.task.original_mtime = None
             
-            # 2. Create directory (if needed)
             if local_path.is_dir() or self.task.remote_path.endswith('/'):
                 local_path.mkdir(parents=True, exist_ok=True)
             else:
                 local_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # 3. Execute download
             self.hdc.file_recv(
                 self.task.device_id,
                 self.task.remote_path,
@@ -214,21 +198,17 @@ class TransferWorker(QThread):
                 preserve_timestamp=self.task.preserve_timestamp
             )
             
-            # 4. Set local file timestamp (after download)
             if self.task.preserve_timestamp and self.task.original_mtime:
                 try:
                     if local_path.is_file():
-                        # Set single file's timestamp
                         os.utime(self.task.local_path, 
                                 (self.task.original_mtime, self.task.original_mtime))
                         logger.info(f"Restored file timestamp: {self.task.local_path}")
                     elif local_path.is_dir():
-                        # Recursively set timestamps for all files in directory
                         self._restore_directory_timestamps(local_path)
                 except Exception as e:
                     logger.warning(f"Failed to restore timestamp: {e}")
             
-            # 5. Update progress
             if local_path.is_file():
                 self.task.total_size = local_path.stat().st_size
                 self.task.transferred_size = self.task.total_size
@@ -243,6 +223,8 @@ class TransferWorker(QThread):
                 0
             )
         
+        except HDCError:
+            raise
         except Exception as e:
             raise HDCError(f"Download failed: {e}")
     

@@ -53,6 +53,8 @@ class MainWindow(QMainWindow):
         self.theme_manager = None
         self.file_browser = None
         self._loading_widget = None
+        self._device_status_id: Optional[str] = None
+        self._device_status_name: Optional[str] = None
         
         # Menu actions (for language update)
         self.theme_action: Optional[QAction] = None
@@ -139,7 +141,6 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(self.device_label)
         
         self.device_combo = QComboBox()
-        self.device_combo.setMinimumWidth(150)
         self.device_combo.setMinimumHeight(20)
         self.device_combo.setMaximumHeight(28)
         self.device_combo.currentIndexChanged.connect(self._on_device_changed)
@@ -213,7 +214,7 @@ class MainWindow(QMainWindow):
         
         # Update status bar
         if hasattr(self, 'device_label_status') and self.device_label_status:
-            self.device_label_status.setText(language_manager.tr('status.no_device'))
+            self.update_device_status(self._device_status_id, self._device_status_name)
         
         # Update menu bar
         self._update_menu_language()
@@ -336,6 +337,8 @@ class MainWindow(QMainWindow):
     
     def update_device_status(self, device_id: str = None, device_name: str = None):
         """Update device status display."""
+        self._device_status_id = device_id
+        self._device_status_name = device_name
         if device_id and device_name:
             self.device_label_status.setText(
                 f"<span style='color: #3FB950;'>{language_manager.tr('status.connected', device_name=device_name)}</span>"
@@ -404,11 +407,21 @@ class MainWindow(QMainWindow):
         
         if len(devices) == 0:
             self.device_combo.addItem(language_manager.tr('device.no_device'), None)
+            self.device_combo.setMinimumWidth(150)
         else:
+            max_text_width = 0
+            font_metrics = self.device_combo.fontMetrics()
             for device in devices:
-                display_name = device.model or device.device_id[:15]
+                display_name = device.compact_display_name
                 self.device_combo.addItem(display_name, device.device_id)
+                item_width = font_metrics.horizontalAdvance(display_name)
+                if item_width > max_text_width:
+                    max_text_width = item_width
             
+            combo_width = max_text_width + 60
+            self.device_combo.setMinimumWidth(combo_width)
+            self.device_combo.view().setMinimumWidth(combo_width)
+            self.device_combo.view().setTextElideMode(Qt.ElideNone)
             self.device_combo.setCurrentIndex(0)
             self._update_device_display()
     
@@ -460,10 +473,12 @@ class MainWindow(QMainWindow):
         if new_device_id and self.device_manager:
             device = self.device_manager.get_device(new_device_id)
             if device:
-                self.update_device_status(new_device_id, device.display_name)
+                model = device.model or ""
+                device_name = f"{new_device_id} ({model})" if model else new_device_id
+                self.update_device_status(new_device_id, device_name)
                 self.file_browser.set_device(new_device_id, self.device_manager.hdc)
                 self.device_selected.emit(new_device_id)
-                logger.info(f"Device changed to: {device.display_name} ({new_device_id})")
+                logger.info(f"Device changed to: {device_name} ({new_device_id})")
             else:
                 self.update_device_status(new_device_id, new_device_id[:15])
                 logger.warning(f"Device info not found for: {new_device_id}")

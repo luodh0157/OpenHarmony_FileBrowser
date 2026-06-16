@@ -37,15 +37,6 @@ fi
 
 PYTHON=python3
 
-# Check if virtual environment exists
-if [ -d "venv" ]; then
-    source venv/bin/activate
-    PYTHON=python
-elif [ -d ".venv" ]; then
-    source .venv/bin/activate
-    PYTHON=python
-fi
-
 echo -e "${BLUE}Python: $(which $PYTHON)${NC}"
 echo -e "${BLUE}Version: $($PYTHON --version)${NC}"
 echo ""

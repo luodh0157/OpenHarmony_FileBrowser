@@ -23,18 +23,20 @@ class DirectoryLoadThread(QThread):
     loaded = Signal(list)  # 加载完成信号，传递文件列表
     error = Signal(str)    # 加载失败信号，传递错误消息
     
-    def __init__(self, file_ops: FileOperations, path: str):
+    def __init__(self, file_ops: FileOperations, path: str, show_hidden: bool = True):
         """
         初始化目录加载线程
         
         Args:
             file_ops: 文件操作实例
             path: 要加载的目录路径
+            show_hidden: 是否显示隐藏文件
         """
         super().__init__()
         
         self.file_ops = file_ops
         self.path = path
+        self.show_hidden = show_hidden
         self.is_cancelled = False
         
         logger.debug(f"DirectoryLoadThread created for path: {path}")
@@ -46,10 +48,10 @@ class DirectoryLoadThread(QThread):
         加载完成后通过信号通知主线程
         """
         try:
-            logger.info(f"Loading directory asynchronously: {self.path}")
+            logger.info(f"Loading directory asynchronously: {self.path} (show_hidden={self.show_hidden})")
             
             # 执行目录加载（可能耗时）
-            files = self.file_ops.list_directory(self.path, show_hidden=False)
+            files = self.file_ops.list_directory(self.path, show_hidden=self.show_hidden)
             
             # 检查是否被取消
             if self.is_cancelled:
@@ -65,6 +67,8 @@ class DirectoryLoadThread(QThread):
             if not self.is_cancelled:
                 logger.error(f"Failed to load directory {self.path}: {e}")
                 self.error.emit(str(e))
+        finally:
+            self.deleteLater()
     
     def cancel(self):
         """

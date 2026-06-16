@@ -21,7 +21,7 @@ class Config:
     window_min_height: int = 600
     
     log_level: str = "INFO"
-    log_dir: Path = None
+    log_dir: Optional[Path] = None
     
     hdc_timeout: int = 30
     hdc_max_retries: int = 3
@@ -62,7 +62,9 @@ class Config:
         if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return cls(**data)
+            known_fields = {f.name for f in cls.__dataclass_fields__.values()}
+            filtered = {k: v for k, v in data.items() if k in known_fields}
+            return cls(**filtered)
         
         return cls()
     

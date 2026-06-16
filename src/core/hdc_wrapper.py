@@ -221,7 +221,8 @@ class HDCWrapper:
                 **_SUBPROCESS_KWARGS,
             )
             
-            if check and result.returncode != 0:
+            combined_output = result.stderr.strip() + result.stdout.strip()
+            if check and (result.returncode != 0 or "[Fail]" in combined_output):
                 error_msg = result.stderr.strip() or result.stdout.strip()
                 raise HDCError(f"HDC command failed: {error_msg}")
             
@@ -286,7 +287,6 @@ class HDCWrapper:
         )
         
         try:
-            # Batch 3 param queries into a single shell command
             batch_cmd = (
                 "echo MODEL:$(param get const.product.model); "
                 "echo BRAND:$(param get const.product.brand); "
@@ -332,7 +332,7 @@ class HDCWrapper:
         Returns:
             List of file information
         """
-        logger.debug(f"Listing files: {device_id}:{path}")
+        logger.debug(f"Listing files: {device_id}:{path} (show_hidden={show_hidden})")
         
         args = ["shell", "ls", "-l"]
         if show_hidden:
@@ -398,6 +398,11 @@ class HDCWrapper:
         
         if permissions.startswith("l"):
             file_type = FileType.SYMLINK
+            if " -> " in name:
+                name, _, target = name.partition(" -> ")
+                is_dir = target.endswith("/")
+            else:
+                is_dir = False
         
         full_path = f"{parent_path.rstrip('/')}/{name}"
         
@@ -513,7 +518,8 @@ class HDCWrapper:
             
             elif line.startswith("Modify:"):
                 try:
-                    time_str = line.split(":")[1].strip()
+                    time_str = line.split("Modify: ")[1].strip()
+                    time_str = time_str.split(".")[0]
                     modified_time = datetime.strptime(
                         time_str, "%Y-%m-%d %H:%M:%S"
                     )
@@ -642,15 +648,28 @@ class HDCWrapper:
         logger.debug(f"HDC output: {output}")
         
         try:
-            verify_output = self.shell(device_id, f"ls {remote_path}")
-            if remote_path not in verify_output:
-                logger.error(f"Path not found on device: {remote_path}")
+            if local_path_obj.is_dir():
+                verify_output = self._execute(
+                    ["shell", f"ls -d '{remote_path}'"],
+                    device_id=device_id,
+                    check=False
+                )
+            else:
+                verify_output = self._execute(
+                    ["shell", f"ls '{remote_path}'"],
+                    device_id=device_id,
+                    check=False
+                )
+            first_line = verify_output.strip().split('\n')[0].strip().rstrip('/')
+            if first_line != remote_path.rstrip('/'):
+                logger.error(f"Path not found on device: {remote_path}, verify output: {verify_output.strip()}")
                 raise HDCError(f"Path not found on device after upload: {remote_path}")
             logger.info(f"Path sent and verified: {remote_path}")
+        except HDCError:
+            raise
         except Exception as e:
-            logger.warning(f"Could not verify path on device: {e}")
-            logger.info(f"Path sent: {remote_path}")
-
+            raise HDCError(f"Verification failed after upload: {e}")
+    
     def file_recv(
         self, device_id: str, remote_path: str, local_path: str,
         preserve_timestamp: bool = True
