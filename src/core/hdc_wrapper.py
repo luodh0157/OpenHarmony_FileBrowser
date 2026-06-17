@@ -3,7 +3,12 @@ HDC (HarmonyOS Device Connector) wrapper for OpenHarmony File Browser.
 Provides interface to communicate with OpenHarmony/HarmonyOS devices.
 """
 
+import os
+import shutil
 import subprocess
+import tempfile
+import time
+import uuid
 import platform
 from pathlib import Path
 from typing import List, Optional, Dict
@@ -20,6 +25,89 @@ _IS_WINDOWS = platform.system() == "Windows"
 _SUBPROCESS_KWARGS = (
     {"creationflags": subprocess.CREATE_NO_WINDOW} if _IS_WINDOWS else {}
 )
+_UTF8_ENV = {**os.environ, "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"}
+
+
+def _has_non_ascii(path: str) -> bool:
+    """Check if path contains non-ASCII characters."""
+    try:
+        path.encode("ascii")
+        return False
+    except UnicodeEncodeError:
+        return True
+
+
+def _copy_dir_robust(src: str, dst: str) -> None:
+    """Copy directory robustly on Windows using robocopy, falling back to shutil.copytree."""
+    if _IS_WINDOWS:
+        result = subprocess.run(
+            ["robocopy", src, dst, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        # robocopy exit codes: 0-3 = success, 4-7 = some files not copied, 8+ = error
+        if result.returncode >= 8:
+            raise OSError(f"robocopy failed: {result.stderr}")
+    else:
+        shutil.copytree(src, dst)
+
+
+def _ensure_ascii_path(path: str, is_dir: bool = False) -> tuple:
+    """Ensure path is ASCII-only for HDC on Windows.
+
+    If path contains non-ASCII characters, copy/create a temporary ASCII path.
+
+    Args:
+        path: Original file/directory path
+        is_dir: Whether this is a directory (True) or file (False)
+
+    Returns:
+        Tuple of (ascii_path, cleanup_func)
+        - ascii_path: ASCII-only path to use with HDC
+        - cleanup_func: Function to call after HDC operation to clean up temp files
+    """
+    if not _IS_WINDOWS or not _has_non_ascii(path):
+        return path, lambda: None
+
+    if is_dir:
+        tmp_dir = tempfile.mkdtemp(prefix="hdc_")
+        _copy_dir_robust(path, tmp_dir)
+        logger.debug(f"Created temp ASCII dir: {tmp_dir}")
+        return tmp_dir, lambda: shutil.rmtree(tmp_dir, ignore_errors=True)
+    else:
+        ext = Path(path).suffix
+        tmp_file = tempfile.NamedTemporaryFile(suffix=ext, prefix="hdc_", delete=False)
+        tmp_file.close()
+        shutil.copy2(path, tmp_file.name)
+        logger.debug(f"Created temp ASCII file: {tmp_file.name}")
+        return tmp_file.name, lambda: os.unlink(tmp_file.name)
+
+
+def _ensure_ascii_remote_path(remote_path: str, is_dir: bool = False) -> tuple:
+    """Generate an ASCII temporary remote path for HDC transfer.
+
+    If remote_path contains non-ASCII characters, return an ASCII temp path
+    and the original path for post-transfer rename.
+
+    Returns:
+        Tuple of (transfer_path, original_path, rename_needed)
+    """
+    if not _IS_WINDOWS or not _has_non_ascii(remote_path):
+        return remote_path, remote_path, False
+
+    if is_dir:
+        ascii_name = f"hdc_{uuid.uuid4().hex[:8]}"
+        parent = remote_path.rstrip("/").rsplit("/", 1)[0] or "/"
+        transfer_path = f"{parent}/{ascii_name}"
+    else:
+        parent = remote_path.rsplit("/", 1)[0] or "/"
+        ext = Path(remote_path).suffix
+        ascii_name = f"hdc_{uuid.uuid4().hex[:8]}{ext}"
+        transfer_path = f"{parent}/{ascii_name}"
+
+    logger.debug(f"Using temp remote path: {transfer_path}")
+    return transfer_path, remote_path, True
 
 
 class HDCError(Exception):
@@ -105,6 +193,7 @@ class HDCWrapper:
             stderr=subprocess.PIPE,
             text=True,
             encoding="utf-8",
+            env=_UTF8_ENV,
             **_SUBPROCESS_KWARGS,
         )
         self._shell_sessions[device_id] = proc
@@ -125,8 +214,6 @@ class HDCWrapper:
         Returns:
             List of command outputs (one per command)
         """
-        import time
-
         proc = self._get_or_create_shell_session(device_id)
 
         try:
@@ -221,6 +308,7 @@ class HDCWrapper:
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
+                env=_UTF8_ENV,
                 timeout=timeout or self.timeout,
                 **_SUBPROCESS_KWARGS,
             )
@@ -454,8 +542,6 @@ class HDCWrapper:
         Returns:
             FileInfo object
         """
-        import os
-
         name = os.path.basename(path)
 
         size = 0
@@ -612,54 +698,63 @@ class HDCWrapper:
         """
         logger.info(f"Sending: {local_path} -> {device_id}:{remote_path}")
 
-        import os
-        import platform
-
-        if platform.system() == "Windows":
-            local_path = os.path.normpath(local_path)
-            logger.debug(f"Normalized Windows path: {local_path}")
-
-        from pathlib import Path
-
-        local_path_obj = Path(local_path)
-        if not local_path_obj.exists():
-            raise HDCError(f"Local path not found: {local_path}")
-
-        if local_path_obj.is_file():
-            logger.debug(f"Local file size: {local_path_obj.stat().st_size} bytes")
-
-        cmd = ["file", "send"]
-        if preserve_timestamp:
-            cmd.append("-a")
-            logger.info("Using HDC -a option to preserve timestamp")
-        cmd.extend([local_path, remote_path])
-
-        output = self._execute(cmd, device_id=device_id, check=True)
-
-        logger.debug(f"HDC output: {output}")
+        cleanup_local = lambda: None
 
         try:
-            if local_path_obj.is_dir():
-                verify_output = self._execute(
-                    ["shell", f"ls -d '{remote_path}'"],
-                    device_id=device_id,
-                    check=False,
-                )
+            if platform.system() == "Windows":
+                local_path = os.path.normpath(local_path)
+                is_dir_upload = Path(local_path).is_dir()
+                if _has_non_ascii(local_path):
+                    local_path, cleanup_local = _ensure_ascii_path(local_path, is_dir=is_dir_upload)
+                    logger.debug(f"Using temp ASCII local path for upload: {local_path}")
+
+                if _has_non_ascii(remote_path):
+                    remote_path, original_remote, rename_needed = _ensure_ascii_remote_path(
+                        remote_path, is_dir=is_dir_upload
+                    )
+                else:
+                    original_remote = remote_path
+                    rename_needed = False
             else:
-                verify_output = self._execute(
-                    ["shell", f"ls '{remote_path}'"], device_id=device_id, check=False
-                )
-            first_line = verify_output.strip().split("\n")[0].strip().rstrip("/")
-            if first_line != remote_path.rstrip("/"):
-                logger.error(
-                    f"Path not found on device: {remote_path}, verify output: {verify_output.strip()}"
-                )
-                raise HDCError(f"Path not found on device after upload: {remote_path}")
-            logger.info(f"Path sent and verified: {remote_path}")
-        except HDCError:
-            raise
-        except Exception as e:
-            raise HDCError(f"Verification failed after upload: {e}")
+                original_remote = remote_path
+                rename_needed = False
+
+            local_path_obj = Path(local_path)
+            if not local_path_obj.exists():
+                raise HDCError(f"Local path not found: {local_path}")
+
+            if local_path_obj.is_file():
+                logger.debug(f"Local file size: {local_path_obj.stat().st_size} bytes")
+
+            cmd = ["file", "send"]
+            if preserve_timestamp:
+                cmd.append("-a")
+                logger.info("Using HDC -a option to preserve timestamp")
+            cmd.extend([local_path, remote_path])
+
+            self._execute(cmd, device_id=device_id, check=True)
+
+            # Rename on device if we used a temp remote path
+            if rename_needed:
+                try:
+                    self._execute(
+                        ["shell", "mv", remote_path, original_remote],
+                        device_id=device_id,
+                        check=True,
+                    )
+                    logger.debug(f"Renamed on device: {remote_path} -> {original_remote}")
+                except HDCError as e:
+                    raise HDCError(f"Failed to rename file on device: {e}")
+
+            self._execute(
+                ["shell", "test", "-e", original_remote],
+                device_id=device_id,
+                check=True,
+            )
+            logger.info(f"Path sent and verified: {original_remote}")
+
+        finally:
+            cleanup_local()
 
     def file_recv(
         self,
@@ -679,42 +774,114 @@ class HDCWrapper:
         """
         logger.info(f"Receiving: {device_id}:{remote_path} -> {local_path}")
 
-        import os
-        import platform
+        original_local_path = local_path
+        cleanup_local_temp = lambda: None
+        remote_rename_needed = False
+        remote_rename_done = False
+        ascii_remote = remote_path
+        is_dir_download = remote_path.endswith("/")
+        recv_succeeded = False
+        used_temp_local = False
 
-        from pathlib import Path
+        try:
+            if platform.system() == "Windows":
+                local_path = os.path.normpath(local_path)
+                if _has_non_ascii(local_path):
+                    used_temp_local = True
+                    if is_dir_download:
+                        tmp_dir = tempfile.mkdtemp(prefix="hdc_")
+                        cleanup_local_temp = lambda: shutil.rmtree(tmp_dir, ignore_errors=True)
+                        local_path = tmp_dir
+                    else:
+                        ext = Path(local_path).suffix
+                        tmp_file = tempfile.NamedTemporaryFile(suffix=ext, prefix="hdc_", delete=False)
+                        tmp_file.close()
+                        cleanup_local_temp = lambda: os.unlink(tmp_file.name)
+                        local_path = tmp_file.name
+                    logger.debug(f"Using temp ASCII local path for download: {local_path}")
 
-        local_path_obj = Path(local_path)
+                if _has_non_ascii(remote_path):
+                    ascii_remote, original_remote, remote_rename_needed = _ensure_ascii_remote_path(
+                        remote_path, is_dir=is_dir_download
+                    )
+                    try:
+                        self._execute(
+                            ["shell", "mv", remote_path, ascii_remote],
+                            device_id=device_id,
+                            check=True,
+                        )
+                        remote_rename_done = True
+                        logger.debug(f"Renamed on device for download: {remote_path} -> {ascii_remote}")
+                    except HDCError as e:
+                        raise HDCError(f"Failed to rename remote file for download: {e}")
+                else:
+                    original_remote = remote_path
+            else:
+                original_remote = remote_path
 
-        if local_path_obj.is_dir() or remote_path.endswith("/"):
-            local_path_obj.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created local directory: {local_path}")
-        else:
-            local_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            local_path_obj = Path(local_path)
 
-        if platform.system() == "Windows":
-            local_path = os.path.normpath(local_path)
-            logger.debug(f"Normalized Windows path: {local_path}")
+            if is_dir_download:
+                local_path_obj.mkdir(parents=True, exist_ok=True)
+                logger.debug(f"Created local directory: {local_path}")
+            else:
+                local_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
-        cmd = ["file", "recv"]
-        if preserve_timestamp:
-            cmd.append("-a")
-            logger.info("Using HDC -a option to preserve timestamp")
-        cmd.extend([remote_path, local_path])
+            cmd = ["file", "recv"]
+            if preserve_timestamp:
+                cmd.append("-a")
+                logger.info("Using HDC -a option to preserve timestamp")
+            cmd.extend([ascii_remote, local_path])
 
-        output = self._execute(cmd, device_id=device_id, check=True)
+            self._execute(cmd, device_id=device_id, check=True)
+            recv_succeeded = True
 
-        logger.debug(f"HDC output: {output}")
+            # Rename remote file back to original name
+            if remote_rename_needed:
+                try:
+                    self._execute(
+                        ["shell", "mv", ascii_remote, original_remote],
+                        device_id=device_id,
+                        check=True,
+                    )
+                    logger.debug(f"Renamed back on device: {ascii_remote} -> {original_remote}")
+                except HDCError as e:
+                    logger.warning(f"Failed to rename remote file back: {e}")
 
-        if local_path_obj.is_file():
-            file_size = local_path_obj.stat().st_size
-            if file_size == 0:
-                logger.warning(f"Downloaded file has 0 bytes: {local_path}")
-            logger.info(f"File received and verified: {local_path} ({file_size} bytes)")
-        elif local_path_obj.is_dir():
-            logger.info(f"Directory received and verified: {local_path}")
-        else:
-            logger.warning(f"Download completed, but path type unknown: {local_path}")
+            # If we used a temp local path, copy to original target
+            if used_temp_local:
+                target_path = Path(original_local_path)
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                if is_dir_download:
+                    shutil.copytree(local_path, original_local_path, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(local_path, original_local_path)
+                logger.debug(f"Copied from temp path to: {original_local_path}")
+
+            target_obj = Path(original_local_path)
+            if target_obj.is_file():
+                file_size = target_obj.stat().st_size
+                if file_size == 0:
+                    logger.warning(f"Downloaded file has 0 bytes: {original_local_path}")
+                logger.info(f"File received and verified: {original_local_path} ({file_size} bytes)")
+            elif target_obj.is_dir():
+                logger.info(f"Directory received and verified: {original_local_path}")
+            else:
+                logger.warning(f"Download completed, but path type unknown: {original_local_path}")
+
+        finally:
+            # Rollback remote rename if recv failed
+            if remote_rename_needed and remote_rename_done and not recv_succeeded:
+                try:
+                    self._execute(
+                        ["shell", "mv", ascii_remote, original_remote],
+                        device_id=device_id,
+                        check=True,
+                    )
+                    logger.debug(f"Rolled back remote rename: {ascii_remote} -> {original_remote}")
+                except Exception:
+                    logger.warning(f"Failed to rollback remote rename: {ascii_remote} -> {original_remote}")
+            cleanup_local_temp()
 
     def tconn(self, ip_port: str) -> None:
         """
