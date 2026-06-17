@@ -1,6 +1,6 @@
 version: '1.0'
 name: release
-displayName: OpenHarmony FileBrowser 版本发布
+displayName: OpenHarmony_FileBrowser_版本发布
 triggers:
   trigger: auto
   push:
@@ -89,12 +89,13 @@ stages:
           - pip install pyinstaller
           - python package/build.py
           - cd dist
-          - tar czf "OpenHarmonyFileBrowser-Linux-x64.tar.gz" "OpenHarmonyFileBrowser/"
+          - tar czf "OpenHarmonyFileBrowser-Linux-x64_${FILEBROWSER_VERSION}.tar.gz" "OpenHarmonyFileBrowser/"
+          - rm -rf "OpenHarmonyFileBrowser/"
           - cd ..
         artifacts:
           - name: FILEBROWSER_ARTIFACT
             path:
-              - dist/OpenHarmonyFileBrowser-Linux-x64.tar.gz
+              - dist/
         caches: []
         notify: []
         strategy:

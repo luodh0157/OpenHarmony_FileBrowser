@@ -1,6 +1,6 @@
 version: '1.0'
 name: build
-displayName: OpenHarmony FileBrowser 版本构建
+displayName: OpenHarmony_FileBrowser_版本构建
 triggers:
   trigger: auto
   push:
@@ -38,7 +38,7 @@ stages:
           - python --version
           - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          - yum install -y mesa-libEGL mesa-libGL
+          - yum install -y mesa-libEGL mesa-libGL fontconfig
           - python -m pip install --upgrade pip
           - pip install -r requirements.txt
           - pip install -r requirements-dev.txt
@@ -81,18 +81,19 @@ stages:
           - python --version
           - python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          - yum install -y mesa-libEGL mesa-libGL
+          - yum install -y mesa-libEGL mesa-libGL fontconfig
           - python -m pip install --upgrade pip
           - pip install -r requirements.txt
           - pip install pyinstaller
           - python package/build.py
           - cd dist
           - tar czf "OpenHarmonyFileBrowser-Linux-x64.tar.gz" "OpenHarmonyFileBrowser/"
+          - rm -rf "OpenHarmonyFileBrowser/"
           - cd ..
         artifacts:
           - name: FILEBROWSER_ARTIFACT
             path:
-              - dist/OpenHarmonyFileBrowser-Linux-x64.tar.gz
+              - dist/
         caches: []
         notify: []
         strategy:
