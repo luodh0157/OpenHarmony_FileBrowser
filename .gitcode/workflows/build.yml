@@ -28,12 +28,6 @@ jobs:
           python --version
           python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
 
-      - name: Install system dependencies (Qt)
-        run: |
-          cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
-
       - name: Configure pip mirror
         run: |
           cd repo_workspace
@@ -42,6 +36,13 @@ jobs:
           echo "[global]" > ~/.pip/pip.conf
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
           echo "timeout = 120" >> ~/.pip/pip.conf
+
+      - name: Install system dependencies (Qt)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
+          conda install -y fontconfig 2>/dev/null || true
 
       - name: Install test dependencies
         run: |
@@ -67,6 +68,7 @@ jobs:
         run: |
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
+          export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
           QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
 
       - name: Run type check (mypy)
@@ -102,6 +104,13 @@ jobs:
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
           echo "timeout = 120" >> ~/.pip/pip.conf
 
+      - name: Install system dependencies (Qt)
+        run: |
+          cd repo_workspace
+          source $HOME/miniconda/bin/activate py311
+          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm 2>/dev/null || true
+          conda install -y fontconfig 2>/dev/null || true
+
       - name: Install build dependencies
         run: |
           cd repo_workspace
@@ -135,10 +144,3 @@ jobs:
             echo "::error::Build output not found"
             exit 1
           fi
-
-      #- name: Upload artifact
-      #  uses: upload-artifact@0.0.1
-      #  with:
-      #    name: OpenHarmonyFileBrowser-Linux-x64
-      #    paths: repo_workspace/dist/OpenHarmonyFileBrowser-Linux-x64.tar.gz
-      #    retention-days: 30
