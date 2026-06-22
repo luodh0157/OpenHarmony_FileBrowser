@@ -84,11 +84,12 @@ class PathBarWidget(QWidget):
         self.show_hidden_checkbox = QCheckBox(
             language_manager.tr("path_bar.show_hidden")
         )
-        self.show_hidden_checkbox.setChecked(True)
+        self.show_hidden_checkbox.setChecked(False)
         self.show_hidden_checkbox.stateChanged.connect(self._on_show_hidden_changed)
         layout.addWidget(self.show_hidden_checkbox)
 
         self.select_all_checkbox = QCheckBox(language_manager.tr("path_bar.select_all"))
+        self.select_all_checkbox.setTristate(True)
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
         layout.addWidget(self.select_all_checkbox)
 
@@ -193,9 +194,25 @@ class PathBarWidget(QWidget):
 
     def _on_select_all_changed(self, state):
         """Handle select all checkbox state change."""
+        if state == Qt.CheckState.PartiallyChecked.value:
+            self.select_all_checkbox.blockSignals(True)
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Checked)
+            self.select_all_checkbox.blockSignals(False)
+            state = Qt.CheckState.Checked.value
         self.select_all_changed.emit(state)
 
-        logger.debug(f"Select all changed: {state}")
+    def update_select_all_state(self, selected_count: int, total_count: int):
+        """Programmatically update select all checkbox state."""
+        self.select_all_checkbox.blockSignals(True)
+        if total_count == 0:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
+        elif selected_count == 0:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
+        elif selected_count == total_count:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Checked)
+        else:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
+        self.select_all_checkbox.blockSignals(False)
 
     def _toggle_edit_mode(self):
         """Toggle between breadcrumb and input mode."""

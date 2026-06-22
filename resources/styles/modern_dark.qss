@@ -520,6 +520,12 @@ QCheckBox::indicator:checked {
     image: url(resources/icons/dark/checkmark.svg);
 }
 
+QCheckBox::indicator:indeterminate {
+    background-color: #0D1117;
+    border-color: #58A6FF;
+    image: url(resources/icons/dark/indeterminate.svg);
+}
+
 QCheckBox::indicator:hover {
     border-color: #58A6FF;
 }
@@ -546,6 +552,12 @@ QTableWidget QCheckBox::indicator:checked {
     background-color: #0D1117;
     border-color: #58A6FF;
     image: url(resources/icons/dark/checkmark.svg);
+}
+
+QTableWidget QCheckBox::indicator:indeterminate {
+    background-color: #0D1117;
+    border-color: #58A6FF;
+    image: url(resources/icons/dark/indeterminate.svg);
 }
 
 QTableWidget QCheckBox::indicator:hover {

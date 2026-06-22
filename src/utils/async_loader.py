@@ -20,7 +20,7 @@ class DirectoryLoadThread(QThread):
     loaded = Signal(list)  # 加载完成信号，传递文件列表
     error = Signal(str)  # 加载失败信号，传递错误消息
 
-    def __init__(self, file_ops: FileOperations, path: str, show_hidden: bool = True):
+    def __init__(self, file_ops: FileOperations, path: str, show_hidden: bool = False):
         """
         初始化目录加载线程
 

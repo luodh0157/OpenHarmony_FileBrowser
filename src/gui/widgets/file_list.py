@@ -84,6 +84,7 @@ class FileListWidget(QWidget):
         self.device_id: Optional[str] = None
         self.current_path: str = "/"
         self.files: List[FileInfo] = []
+        self._bulk_operation = False
 
         self.load_thread: Optional[DirectoryLoadThread] = None
 
@@ -219,6 +220,7 @@ class FileListWidget(QWidget):
 
     def _handle_select_all_shortcut(self):
         """Handle Ctrl+A shortcut - select all rows and sync checkboxes."""
+        self._bulk_operation = True
         self.table.blockSignals(True)
         self.table.selectAll()
         for row in range(self.table.rowCount()):
@@ -226,11 +228,13 @@ class FileListWidget(QWidget):
             if checkbox:
                 checkbox.setChecked(True)
         self.table.blockSignals(False)
+        self._bulk_operation = False
         self.selection_changed.emit()
         logger.info(f"Ctrl+A: selected all {self.table.rowCount()} items")
 
     def _handle_deselect_all_shortcut(self):
         """Handle Ctrl+D shortcut - deselect all rows and sync checkboxes."""
+        self._bulk_operation = True
         self.table.blockSignals(True)
         self.table.clearSelection()
         for row in range(self.table.rowCount()):
@@ -238,6 +242,7 @@ class FileListWidget(QWidget):
             if checkbox:
                 checkbox.setChecked(False)
         self.table.blockSignals(False)
+        self._bulk_operation = False
         self.selection_changed.emit()
         logger.info(f"Ctrl+D: deselected all {self.table.rowCount()} items")
 
@@ -278,7 +283,7 @@ class FileListWidget(QWidget):
         self._hide_loading()
         logger.info("Device cleared from file list")
 
-    def load_directory(self, path: str, show_hidden: bool = True):
+    def load_directory(self, path: str, show_hidden: bool = False):
         """Load and display files asynchronously."""
         if not self.file_ops:
             return
@@ -362,6 +367,7 @@ class FileListWidget(QWidget):
         self._display_files()
         self._hide_loading()
         self.status_message.emit(f"{self.current_path} - {len(files)} items")
+        self.selection_changed.emit()
         logger.info(f"Directory loaded and displayed: {len(files)} files")
 
     def _on_load_error(self, error_msg: str):
@@ -373,11 +379,13 @@ class FileListWidget(QWidget):
         )
         self.empty_label.show()
         self.table.hide()
+        self.selection_changed.emit()
         logger.error(f"Directory load error: {error_msg}")
 
     def _display_files(self):
         """Display files in table."""
         if len(self.files) == 0:
+            self.table.setRowCount(0)
             self.table.hide()
             self.empty_label.setText(language_manager.tr("file_list.empty_text"))
             self.empty_label.show()
@@ -441,9 +449,15 @@ class FileListWidget(QWidget):
         row = checkbox.property("row")
         is_checked = state == 2
 
+        was_blocked = self.table.signalsBlocked()
         self.table.blockSignals(True)
         if is_checked:
-            self.table.selectRow(row)
+            from PySide6.QtCore import QItemSelectionModel
+
+            self.table.selectionModel().select(
+                self.table.model().index(row, 0),
+                QItemSelectionModel.Select | QItemSelectionModel.Rows,
+            )
         else:
             from PySide6.QtCore import QItemSelectionModel
 
@@ -451,9 +465,13 @@ class FileListWidget(QWidget):
                 self.table.model().index(row, 0),
                 QItemSelectionModel.Deselect | QItemSelectionModel.Rows,
             )
-        self.table.blockSignals(False)
-        logger.debug(
-            f"Checkbox toggled (single-click): row={row}, checked={is_checked}"
+        self.table.blockSignals(was_blocked)
+        bulk = self._bulk_operation
+        if not bulk:
+            self.selection_changed.emit()
+        logger.info(
+            f"Checkbox toggled: row={row}, checked={is_checked}, "
+            f"bulk={bulk}, signals_blocked={was_blocked}"
         )
 
     def _on_checkbox_double_clicked(self):
@@ -492,6 +510,7 @@ class FileListWidget(QWidget):
         has_ctrl = modifiers & Qt.ControlModifier
         has_shift = modifiers & Qt.ShiftModifier
 
+        self._bulk_operation = True
         self.table.blockSignals(True)
 
         if has_ctrl or has_shift:
@@ -515,10 +534,12 @@ class FileListWidget(QWidget):
                 self.table.selectRow(row)
 
         self.table.blockSignals(False)
+        self._bulk_operation = False
         self.selection_changed.emit()
-        logger.debug(
+        logger.info(
             f"Item clicked: row={row}, col={col}, prev={is_currently_selected}, "
-            f"ctrl={has_ctrl}, shift={has_shift}"
+            f"ctrl={bool(has_ctrl)}, shift={bool(has_shift)}, "
+            f"selected_rows={sorted(set(i.row() for i in self.table.selectedItems())) if has_ctrl or has_shift else 'N/A'}"
         )
 
     def _on_item_double_clicked(self, item: QTableWidgetItem):
@@ -558,7 +579,7 @@ class FileListWidget(QWidget):
 
         return selected_files
 
-    def refresh(self, show_hidden: bool = True):
+    def refresh(self, show_hidden: bool = False):
         """Refresh current directory."""
         self.load_directory(self.current_path, show_hidden=show_hidden)
         logger.info("File list refreshed")

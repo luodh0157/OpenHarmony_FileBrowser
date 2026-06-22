@@ -449,7 +449,7 @@ QToolTip {
     font-size: 9pt;
 }
 
-/* CheckBox - Use Qt default style */
+/* CheckBox */
 QCheckBox {
     spacing: 4px;
     font-size: 10pt;
@@ -458,9 +458,33 @@ QCheckBox {
 QCheckBox::indicator {
     width: 16px;
     height: 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 3px;
+    background-color: #FFFFFF;
 }
 
-/* Table Widget CheckBox - Use Qt default style */
+QCheckBox::indicator:checked {
+    background-color: #FFFFFF;
+    border-color: #3B82F6;
+    image: url(resources/icons/light/checkmark.svg);
+}
+
+QCheckBox::indicator:indeterminate {
+    background-color: #FFFFFF;
+    border-color: #3B82F6;
+    image: url(resources/icons/light/indeterminate.svg);
+}
+
+QCheckBox::indicator:hover {
+    border-color: #3B82F6;
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #F3F4F6;
+    border-color: #D1D5DB;
+}
+
+/* Table Widget CheckBox */
 QTableWidget QCheckBox {
     spacing: 0px;
 }
@@ -468,6 +492,19 @@ QTableWidget QCheckBox {
 QTableWidget QCheckBox::indicator {
     width: 16px;
     height: 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 3px;
+    background-color: #FFFFFF;
+}
+
+QTableWidget QCheckBox::indicator:checked {
+    background-color: #FFFFFF;
+    border-color: #3B82F6;
+    image: url(resources/icons/light/checkmark.svg);
+}
+
+QTableWidget QCheckBox::indicator:hover {
+    border-color: #3B82F6;
 }
 
 /* Loading Indicator */

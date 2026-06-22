@@ -60,7 +60,8 @@ class FileBrowserWidget(QWidget):
         self.preview_handler: Optional[PreviewHandler] = None
         self.preview_window: Optional[PreviewWindow] = None
 
-        self._show_hidden: bool = True
+        self._show_hidden: bool = False
+        self._pending_path: Optional[str] = None
 
         self._init_ui()
 
@@ -100,6 +101,7 @@ class FileBrowserWidget(QWidget):
         self.file_list.directory_entered.connect(self._on_directory_entered)
         self.file_list.file_double_clicked.connect(self._on_file_double_clicked)
         self.file_list.status_message.connect(self._on_file_list_status_message)
+        self.file_list.selection_changed.connect(self._sync_select_all_checkbox)
 
     def setup_toolbar(self, toolbar: QToolBar):
         """Setup file operation toolbar in main window."""
@@ -171,14 +173,19 @@ class FileBrowserWidget(QWidget):
 
     def _toggle_select_all(self, state):
         """Toggle select all checkboxes in file list."""
-        check_state = state == 2
+        check_state = state != Qt.CheckState.Unchecked.value
+        logger.info(f"_toggle_select_all called: state={state}, check_state={check_state}")
 
+        self.file_list._bulk_operation = True
         self.file_list.table.blockSignals(True)
 
-        for row in range(self.file_list.table.rowCount()):
+        total = self.file_list.table.rowCount()
+        for row in range(total):
             checkbox = self.file_list.table.cellWidget(row, 0)
             if checkbox:
                 checkbox.setChecked(check_state)
+
+        logger.info(f"_toggle_select_all: set {total} checkboxes to {check_state}")
 
         if check_state:
             self.file_list.table.selectAll()
@@ -186,8 +193,21 @@ class FileBrowserWidget(QWidget):
             self.file_list.table.clearSelection()
 
         self.file_list.table.blockSignals(False)
+        self.file_list._bulk_operation = False
 
         self.file_list.selection_changed.emit()
+        logger.info(f"_toggle_select_all completed, selection_changed emitted")
+
+    def _sync_select_all_checkbox(self):
+        """Sync select all checkbox with current file selection state."""
+        selected = 0
+        total = self.file_list.table.rowCount()
+        for row in range(total):
+            checkbox = self.file_list.table.cellWidget(row, 0)
+            if checkbox and checkbox.isChecked():
+                selected += 1
+        logger.info(f"_sync_select_all_checkbox: selected={selected}, total={total}")
+        self.path_bar.update_select_all_state(selected, total)
 
     def _on_file_list_status_message(self, message: str):
         """Forward file list status message to main window."""
@@ -249,6 +269,7 @@ class FileBrowserWidget(QWidget):
         self.file_list.clear_device()
 
         self.current_path = "/"
+        self._pending_path = None
 
         logger.info("Device cleared from file browser")
 
@@ -262,6 +283,11 @@ class FileBrowserWidget(QWidget):
 
     def _on_directory_selected(self, path: str):
         """Handle directory selection from tree."""
+        if self._pending_path:
+            if path != self._pending_path:
+                return
+            self._pending_path = None
+
         if self.current_path == path:
             return
         self.current_path = path
@@ -279,6 +305,7 @@ class FileBrowserWidget(QWidget):
             return
 
         self.current_path = path
+        self._pending_path = path
 
         self.file_tree.expand_to_path(path)
 
@@ -305,6 +332,7 @@ class FileBrowserWidget(QWidget):
                 return
 
             self.current_path = normalized
+            self._pending_path = normalized
 
             self.path_bar.blockSignals(True)
             self.path_bar.set_path(normalized)

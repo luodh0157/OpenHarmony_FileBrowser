@@ -48,6 +48,7 @@ class FileTreeWidget(QWidget):
         self.device_id: Optional[str] = None
 
         self._load_threads: Dict[str, TreeLoadThread] = {}
+        self._is_expanding_to_path = False
 
         self._init_ui()
 
@@ -256,11 +257,14 @@ class FileTreeWidget(QWidget):
         if not path:
             return
 
+        if self._is_expanding_to_path:
+            logger.debug(f"Directory expanded (auto, skipped loading): {path}")
+            return
+
         if item.childCount() > 0:
             first_child = item.child(0)
             if first_child.text(0) == loading_text:
                 item.takeChild(0)
-                # Delay 100ms to let file_list populate cache first
                 self._load_directory_contents_async(path, item, delay_ms=100)
 
         logger.debug(f"Directory expanded: {path}")
@@ -289,19 +293,23 @@ class FileTreeWidget(QWidget):
         Only expands items that are already loaded. For unloaded items,
         triggers async load with a delay to let file_list populate cache first.
         """
+        self._is_expanding_to_path = True
+
         parts = path.split("/")
         parts = [p for p in parts if p]
 
         current_item = self.tree.topLevelItem(0)
         if not current_item:
+            self._is_expanding_to_path = False
             return
 
         current_path = "/"
         loading_text = language_manager.tr("file_tree.loading")
 
-        for part in parts:
+        for idx, part in enumerate(parts):
             if not current_item:
-                break
+                self._is_expanding_to_path = False
+                return
 
             first_child = (
                 current_item.child(0) if current_item.childCount() > 0 else None
@@ -312,10 +320,7 @@ class FileTreeWidget(QWidget):
                 target_path = (
                     f"{current_path}/{part}" if current_path != "/" else f"/{part}"
                 )
-                # fmt: off
-                remaining = parts[parts.index(part):]
-                # fmt: on
-                # Delay to let file_list populate cache first
+                remaining = parts[idx:]
                 self._load_and_expand(
                     current_item, target_path, remaining, delay_ms=150
                 )
@@ -332,8 +337,12 @@ class FileTreeWidget(QWidget):
                     break
 
             if not found:
-                break
+                self._is_expanding_to_path = False
+                self.tree.setCurrentItem(current_item)
+                self.directory_selected.emit(current_path)
+                return
 
+        self._is_expanding_to_path = False
         if current_item:
             self.tree.setCurrentItem(current_item)
             self.directory_selected.emit(path)
@@ -361,12 +370,14 @@ class FileTreeWidget(QWidget):
             self._populate_directories(parent_item, directories)
 
             if not remaining_parts:
+                self._is_expanding_to_path = False
                 self.directory_selected.emit(target_path)
                 return
 
             next_part = remaining_parts[0]
             current_path = target_path.rsplit("/", 1)[0] or "/"
 
+            found = False
             for i in range(parent_item.childCount()):
                 child = parent_item.child(i)
                 if child.text(0) == next_part:
@@ -374,10 +385,18 @@ class FileTreeWidget(QWidget):
                     self._expand_remaining(
                         child, current_path, next_part, remaining_parts[1:]
                     )
+                    found = True
                     break
+
+            if not found:
+                logger.warning(f"Path part '{next_part}' not found in {current_path}")
+                self._is_expanding_to_path = False
+                self.tree.setCurrentItem(parent_item)
+                self.directory_selected.emit(current_path)
 
         def on_error(err):
             logger.error(f"Failed to load {target_path}: {err}")
+            self._is_expanding_to_path = False
             self.directory_selected.emit(target_path)
 
         cached_dirs = self.file_ops.cache.get_child_dirs(
@@ -440,6 +459,7 @@ class FileTreeWidget(QWidget):
         loading_text = language_manager.tr("file_tree.loading")
 
         if not remaining_parts:
+            self._is_expanding_to_path = False
             self.tree.setCurrentItem(current_item)
             self.directory_selected.emit(new_path)
             return
@@ -454,19 +474,30 @@ class FileTreeWidget(QWidget):
             )
             return
 
-        for next_part in remaining_parts:
-            found = False
-            for i in range(current_item.childCount()):
-                child = current_item.child(i)
-                if child.text(0) == next_part:
-                    child.setExpanded(True)
-                    current_item = child
-                    new_path = f"{new_path}/{next_part}"
-                    found = True
-                    break
+        if current_item.childCount() == 0:
+            next_part = remaining_parts[0]
+            target_path = f"{new_path}/{next_part}"
+            self._load_and_expand(
+                current_item, target_path, remaining_parts, delay_ms=150
+            )
+            return
 
-            if not found:
+        next_part = remaining_parts[0]
+        found_child = None
+        for i in range(current_item.childCount()):
+            child = current_item.child(i)
+            if child.text(0) == next_part:
+                found_child = child
                 break
 
-        self.tree.setCurrentItem(current_item)
-        self.directory_selected.emit(new_path)
+        if not found_child:
+            logger.warning(f"Path part '{next_part}' not found in {new_path}")
+            self._is_expanding_to_path = False
+            self.tree.setCurrentItem(current_item)
+            self.directory_selected.emit(new_path)
+            return
+
+        found_child.setExpanded(True)
+        self._expand_remaining(
+            found_child, new_path, next_part, remaining_parts[1:]
+        )
