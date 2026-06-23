@@ -47,8 +47,6 @@ jobs:
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
           yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
-          export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
-          conda install -y -c conda-forge fontconfig
 
       - name: Install test dependencies
         run: |
@@ -121,8 +119,6 @@ jobs:
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
           yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
-          export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
-          conda install -y -c conda-forge fontconfig
 
       - name: Install build dependencies
         run: |
