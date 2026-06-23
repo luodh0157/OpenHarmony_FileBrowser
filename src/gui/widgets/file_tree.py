@@ -498,6 +498,4 @@ class FileTreeWidget(QWidget):
             return
 
         found_child.setExpanded(True)
-        self._expand_remaining(
-            found_child, new_path, next_part, remaining_parts[1:]
-        )
+        self._expand_remaining(found_child, new_path, next_part, remaining_parts[1:])

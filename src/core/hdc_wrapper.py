@@ -41,7 +41,19 @@ def _copy_dir_robust(src: str, dst: str) -> None:
     """Copy directory robustly on Windows using robocopy, falling back to shutil.copytree."""
     if _IS_WINDOWS:
         result = subprocess.run(
-            ["robocopy", src, dst, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP"],
+            [
+                "robocopy",
+                src,
+                dst,
+                "/E",
+                "/NFL",
+                "/NDL",
+                "/NJH",
+                "/NJS",
+                "/NC",
+                "/NS",
+                "/NP",
+            ],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -705,12 +717,16 @@ class HDCWrapper:
                 local_path = os.path.normpath(local_path)
                 is_dir_upload = Path(local_path).is_dir()
                 if _has_non_ascii(local_path):
-                    local_path, cleanup_local = _ensure_ascii_path(local_path, is_dir=is_dir_upload)
-                    logger.debug(f"Using temp ASCII local path for upload: {local_path}")
+                    local_path, cleanup_local = _ensure_ascii_path(
+                        local_path, is_dir=is_dir_upload
+                    )
+                    logger.debug(
+                        f"Using temp ASCII local path for upload: {local_path}"
+                    )
 
                 if _has_non_ascii(remote_path):
-                    remote_path, original_remote, rename_needed = _ensure_ascii_remote_path(
-                        remote_path, is_dir=is_dir_upload
+                    remote_path, original_remote, rename_needed = (
+                        _ensure_ascii_remote_path(remote_path, is_dir=is_dir_upload)
                     )
                 else:
                     original_remote = remote_path
@@ -742,7 +758,9 @@ class HDCWrapper:
                         device_id=device_id,
                         check=True,
                     )
-                    logger.debug(f"Renamed on device: {remote_path} -> {original_remote}")
+                    logger.debug(
+                        f"Renamed on device: {remote_path} -> {original_remote}"
+                    )
                 except HDCError as e:
                     raise HDCError(f"Failed to rename file on device: {e}")
 
@@ -790,19 +808,25 @@ class HDCWrapper:
                     used_temp_local = True
                     if is_dir_download:
                         tmp_dir = tempfile.mkdtemp(prefix="hdc_")
-                        cleanup_local_temp = lambda: shutil.rmtree(tmp_dir, ignore_errors=True)
+                        cleanup_local_temp = lambda: shutil.rmtree(
+                            tmp_dir, ignore_errors=True
+                        )
                         local_path = tmp_dir
                     else:
                         ext = Path(local_path).suffix
-                        tmp_file = tempfile.NamedTemporaryFile(suffix=ext, prefix="hdc_", delete=False)
+                        tmp_file = tempfile.NamedTemporaryFile(
+                            suffix=ext, prefix="hdc_", delete=False
+                        )
                         tmp_file.close()
                         cleanup_local_temp = lambda: os.unlink(tmp_file.name)
                         local_path = tmp_file.name
-                    logger.debug(f"Using temp ASCII local path for download: {local_path}")
+                    logger.debug(
+                        f"Using temp ASCII local path for download: {local_path}"
+                    )
 
                 if _has_non_ascii(remote_path):
-                    ascii_remote, original_remote, remote_rename_needed = _ensure_ascii_remote_path(
-                        remote_path, is_dir=is_dir_download
+                    ascii_remote, original_remote, remote_rename_needed = (
+                        _ensure_ascii_remote_path(remote_path, is_dir=is_dir_download)
                     )
                     try:
                         self._execute(
@@ -811,9 +835,13 @@ class HDCWrapper:
                             check=True,
                         )
                         remote_rename_done = True
-                        logger.debug(f"Renamed on device for download: {remote_path} -> {ascii_remote}")
+                        logger.debug(
+                            f"Renamed on device for download: {remote_path} -> {ascii_remote}"
+                        )
                     except HDCError as e:
-                        raise HDCError(f"Failed to rename remote file for download: {e}")
+                        raise HDCError(
+                            f"Failed to rename remote file for download: {e}"
+                        )
                 else:
                     original_remote = remote_path
             else:
@@ -844,7 +872,9 @@ class HDCWrapper:
                         device_id=device_id,
                         check=True,
                     )
-                    logger.debug(f"Renamed back on device: {ascii_remote} -> {original_remote}")
+                    logger.debug(
+                        f"Renamed back on device: {ascii_remote} -> {original_remote}"
+                    )
                 except HDCError as e:
                     logger.warning(f"Failed to rename remote file back: {e}")
 
@@ -862,12 +892,18 @@ class HDCWrapper:
             if target_obj.is_file():
                 file_size = target_obj.stat().st_size
                 if file_size == 0:
-                    logger.warning(f"Downloaded file has 0 bytes: {original_local_path}")
-                logger.info(f"File received and verified: {original_local_path} ({file_size} bytes)")
+                    logger.warning(
+                        f"Downloaded file has 0 bytes: {original_local_path}"
+                    )
+                logger.info(
+                    f"File received and verified: {original_local_path} ({file_size} bytes)"
+                )
             elif target_obj.is_dir():
                 logger.info(f"Directory received and verified: {original_local_path}")
             else:
-                logger.warning(f"Download completed, but path type unknown: {original_local_path}")
+                logger.warning(
+                    f"Download completed, but path type unknown: {original_local_path}"
+                )
 
         finally:
             # Rollback remote rename if recv failed
@@ -878,9 +914,13 @@ class HDCWrapper:
                         device_id=device_id,
                         check=True,
                     )
-                    logger.debug(f"Rolled back remote rename: {ascii_remote} -> {original_remote}")
+                    logger.debug(
+                        f"Rolled back remote rename: {ascii_remote} -> {original_remote}"
+                    )
                 except Exception:
-                    logger.warning(f"Failed to rollback remote rename: {ascii_remote} -> {original_remote}")
+                    logger.warning(
+                        f"Failed to rollback remote rename: {ascii_remote} -> {original_remote}"
+                    )
             cleanup_local_temp()
 
     def tconn(self, ip_port: str) -> None:
