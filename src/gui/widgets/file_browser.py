@@ -198,7 +198,7 @@ class FileBrowserWidget(QWidget):
         self.file_list._bulk_operation = False
 
         self.file_list.selection_changed.emit()
-        logger.info(f"_toggle_select_all completed, selection_changed emitted")
+        logger.info("_toggle_select_all completed, selection_changed emitted")
 
     def _sync_select_all_checkbox(self):
         """Sync select all checkbox with current file selection state."""

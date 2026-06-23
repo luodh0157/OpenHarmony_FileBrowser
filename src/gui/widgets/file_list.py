@@ -536,10 +536,14 @@ class FileListWidget(QWidget):
         self.table.blockSignals(False)
         self._bulk_operation = False
         self.selection_changed.emit()
+        if has_ctrl or has_shift:
+            sel_rows = sorted(set(i.row() for i in self.table.selectedItems()))
+        else:
+            sel_rows = "N/A"
         logger.info(
             f"Item clicked: row={row}, col={col}, prev={is_currently_selected}, "
             f"ctrl={bool(has_ctrl)}, shift={bool(has_shift)}, "
-            f"selected_rows={sorted(set(i.row() for i in self.table.selectedItems())) if has_ctrl or has_shift else 'N/A'}"
+            f"selected_rows={sel_rows}"
         )
 
     def _on_item_double_clicked(self, item: QTableWidgetItem):

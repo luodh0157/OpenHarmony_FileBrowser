@@ -710,7 +710,10 @@ class HDCWrapper:
         """
         logger.info(f"Sending: {local_path} -> {device_id}:{remote_path}")
 
-        cleanup_local = lambda: None
+        def _noop_cleanup():
+            pass
+
+        cleanup_local = _noop_cleanup
 
         try:
             if platform.system() == "Windows":
@@ -793,7 +796,11 @@ class HDCWrapper:
         logger.info(f"Receiving: {device_id}:{remote_path} -> {local_path}")
 
         original_local_path = local_path
-        cleanup_local_temp = lambda: None
+
+        def _noop_cleanup():
+            pass
+
+        cleanup_local_temp = _noop_cleanup
         remote_rename_needed = False
         remote_rename_done = False
         ascii_remote = remote_path
@@ -808,9 +815,12 @@ class HDCWrapper:
                     used_temp_local = True
                     if is_dir_download:
                         tmp_dir = tempfile.mkdtemp(prefix="hdc_")
-                        cleanup_local_temp = lambda: shutil.rmtree(
-                            tmp_dir, ignore_errors=True
-                        )
+                        tmp_dir_path = tmp_dir
+
+                        def _cleanup_dir():
+                            shutil.rmtree(tmp_dir_path, ignore_errors=True)
+
+                        cleanup_local_temp = _cleanup_dir
                         local_path = tmp_dir
                     else:
                         ext = Path(local_path).suffix
@@ -818,7 +828,12 @@ class HDCWrapper:
                             suffix=ext, prefix="hdc_", delete=False
                         )
                         tmp_file.close()
-                        cleanup_local_temp = lambda: os.unlink(tmp_file.name)
+                        tmp_file_name = tmp_file.name
+
+                        def _cleanup_file():
+                            os.unlink(tmp_file_name)
+
+                        cleanup_local_temp = _cleanup_file
                         local_path = tmp_file.name
                     logger.debug(
                         f"Using temp ASCII local path for download: {local_path}"
