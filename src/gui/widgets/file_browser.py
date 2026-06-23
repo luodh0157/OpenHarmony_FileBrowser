@@ -174,7 +174,9 @@ class FileBrowserWidget(QWidget):
     def _toggle_select_all(self, state):
         """Toggle select all checkboxes in file list."""
         check_state = state != Qt.CheckState.Unchecked.value
-        logger.info(f"_toggle_select_all called: state={state}, check_state={check_state}")
+        logger.info(
+            f"_toggle_select_all called: state={state}, check_state={check_state}"
+        )
 
         self.file_list._bulk_operation = True
         self.file_list.table.blockSignals(True)
@@ -384,7 +386,7 @@ class FileBrowserWidget(QWidget):
 
         if not self.preview_window:
             self.preview_window = PreviewWindow(self)
-            self.preview_window.set_preview_handler(self.preview_handler)
+        self.preview_window.set_preview_handler(self.preview_handler)
 
         self.preview_window.preview_file(
             selected_file.path, selected_file.name, selected_file.size
