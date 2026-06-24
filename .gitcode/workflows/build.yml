@@ -22,19 +22,9 @@ jobs:
 
       - name: Install system dependencies (Qt)
         run: |
-          echo "=== Diagnostic: Check Python 3 paths ==="
-          echo "--- /usr/bin/python3* ---"
-          find /usr/bin -maxdepth 1 -name "python3*" -exec ls -la {} + 2>&1 || echo "No python3* found in /usr/bin"
-          echo "--- /usr/libexec/platform-python* ---"
-          find /usr/libexec -maxdepth 1 -name "platform-python*" -exec ls -la {} + 2>&1 || echo "No platform-python* found in /usr/libexec"
-          echo "--- /usr/bin/python ---"
-          ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
-          echo "--- /bin/yum shebang ---"
-          head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
+          echo "=== Diagnostic: Check yum repositories ==="
           echo "--- /etc/yum.repos.d/ contents ---"
           ls -la /etc/yum.repos.d/ 2>&1 || echo "No /etc/yum.repos.d/ directory"
-          echo "--- Existing repo files ---"
-          for f in /etc/yum.repos.d/*.repo; do [ -e "$f" ] && echo "FILE: $f" && grep -E "^\[|^name=|^baseurl=|^enabled=" "$f" 2>&1; done || echo "No .repo files found"
 
           echo "=== Fix: Determine Python for yum ==="
           YUM_PYTHON="/usr/bin/python3"
@@ -48,36 +38,27 @@ jobs:
             fi
           fi
 
-          echo "=== Fix: Check yum repositories ==="
-          REPO_LIST=$($YUM_PYTHON /usr/bin/yum repolist 2>&1)
-          echo "$REPO_LIST"
-          REPO_COUNT=$(echo "$REPO_LIST" | grep -c "repo-id" || true)
-          echo "Active repo count: $REPO_COUNT"
-
-          if [ "$REPO_COUNT" -eq 0 ]; then
-            echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
-            echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
-            {
-              echo "[baseos]"
-              echo "name=CentOS-8 - BaseOS - TUNA"
-              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
-              echo "enabled=1"
-              echo "gpgcheck=0"
-              echo ""
-              echo "[appstream]"
-              echo "name=CentOS-8 - AppStream - TUNA"
-              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
-              echo "enabled=1"
-              echo "gpgcheck=0"
-            } > /etc/yum.repos.d/CentOS-Vault.repo
-            echo "Repo config written. Verifying..."
-            cat /etc/yum.repos.d/CentOS-Vault.repo
-          else
-            echo "Repos already configured, skipping repo setup."
-          fi
+          echo "=== Fix: Create yum repo config in user directory ==="
+          REPO_DIR="$HOME/yum-repos"
+          mkdir -p "$REPO_DIR"
+          {
+            echo "[baseos]"
+            echo "name=CentOS-8 - BaseOS - TUNA"
+            echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+            echo ""
+            echo "[appstream]"
+            echo "name=CentOS-8 - AppStream - TUNA"
+            echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+          } > "$REPO_DIR/CentOS-Vault.repo"
+          echo "Repo config written to $REPO_DIR/CentOS-Vault.repo:"
+          cat "$REPO_DIR/CentOS-Vault.repo"
 
           echo "=== Install Qt system dependencies ==="
-          $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
@@ -145,19 +126,9 @@ jobs:
 
       - name: Install system dependencies (Qt)
         run: |
-          echo "=== Diagnostic: Check Python 3 paths ==="
-          echo "--- /usr/bin/python3* ---"
-          find /usr/bin -maxdepth 1 -name "python3*" -exec ls -la {} + 2>&1 || echo "No python3* found in /usr/bin"
-          echo "--- /usr/libexec/platform-python* ---"
-          find /usr/libexec -maxdepth 1 -name "platform-python*" -exec ls -la {} + 2>&1 || echo "No platform-python* found in /usr/libexec"
-          echo "--- /usr/bin/python ---"
-          ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
-          echo "--- /bin/yum shebang ---"
-          head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
+          echo "=== Diagnostic: Check yum repositories ==="
           echo "--- /etc/yum.repos.d/ contents ---"
           ls -la /etc/yum.repos.d/ 2>&1 || echo "No /etc/yum.repos.d/ directory"
-          echo "--- Existing repo files ---"
-          for f in /etc/yum.repos.d/*.repo; do [ -e "$f" ] && echo "FILE: $f" && grep -E "^\[|^name=|^baseurl=|^enabled=" "$f" 2>&1; done || echo "No .repo files found"
 
           echo "=== Fix: Determine Python for yum ==="
           YUM_PYTHON="/usr/bin/python3"
@@ -171,36 +142,27 @@ jobs:
             fi
           fi
 
-          echo "=== Fix: Check yum repositories ==="
-          REPO_LIST=$($YUM_PYTHON /usr/bin/yum repolist 2>&1)
-          echo "$REPO_LIST"
-          REPO_COUNT=$(echo "$REPO_LIST" | grep -c "repo-id" || true)
-          echo "Active repo count: $REPO_COUNT"
-
-          if [ "$REPO_COUNT" -eq 0 ]; then
-            echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
-            echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
-            {
-              echo "[baseos]"
-              echo "name=CentOS-8 - BaseOS - TUNA"
-              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
-              echo "enabled=1"
-              echo "gpgcheck=0"
-              echo ""
-              echo "[appstream]"
-              echo "name=CentOS-8 - AppStream - TUNA"
-              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
-              echo "enabled=1"
-              echo "gpgcheck=0"
-            } > /etc/yum.repos.d/CentOS-Vault.repo
-            echo "Repo config written. Verifying..."
-            cat /etc/yum.repos.d/CentOS-Vault.repo
-          else
-            echo "Repos already configured, skipping repo setup."
-          fi
+          echo "=== Fix: Create yum repo config in user directory ==="
+          REPO_DIR="$HOME/yum-repos"
+          mkdir -p "$REPO_DIR"
+          {
+            echo "[baseos]"
+            echo "name=CentOS-8 - BaseOS - TUNA"
+            echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+            echo ""
+            echo "[appstream]"
+            echo "name=CentOS-8 - AppStream - TUNA"
+            echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+          } > "$REPO_DIR/CentOS-Vault.repo"
+          echo "Repo config written to $REPO_DIR/CentOS-Vault.repo:"
+          cat "$REPO_DIR/CentOS-Vault.repo"
 
           echo "=== Install Qt system dependencies ==="
-          $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
