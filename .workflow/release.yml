@@ -1,6 +1,6 @@
 version: '1.0'
 name: release
-displayName: OpenHarmony_FileBrowser_版本发布
+displayName: OpenHarmony_FileBrowser_版本发布_Gitee
 triggers:
   trigger: auto
   push:

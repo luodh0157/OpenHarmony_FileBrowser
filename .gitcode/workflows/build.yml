@@ -44,8 +44,6 @@ jobs:
 
       - name: Install system dependencies (Qt)
         run: |
-          cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install test dependencies
@@ -116,8 +114,6 @@ jobs:
 
       - name: Install system dependencies (Qt)
         run: |
-          cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install build dependencies

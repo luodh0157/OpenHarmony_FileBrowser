@@ -1,6 +1,6 @@
 version: '1.0'
 name: build
-displayName: OpenHarmony_FileBrowser_版本构建
+displayName: OpenHarmony_FileBrowser_版本构建_Gitee
 triggers:
   trigger: auto
   push:
