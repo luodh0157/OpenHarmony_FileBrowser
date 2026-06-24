@@ -24,16 +24,7 @@ jobs:
         run: |
           curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-          cat > ~/.condarc << 'EOF'
-          channels:
-            - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-            - conda-forge
-          custom_multichannels:
-            defaults:
-              - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-          show_channel_urls: true
-          channel_priority: strict
-          EOF
+          printf 'channels:\n  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main\n  - conda-forge\ncustom_multichannels:\n  defaults:\n    - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main\nshow_channel_urls: true\nchannel_priority: strict\n' > ~/.condarc
           echo "=== .condarc contents ==="
           cat ~/.condarc
           echo "=== Create py311 environment ==="
@@ -44,8 +35,8 @@ jobs:
 
       - name: Install Qt dependencies via conda
         run: |
-          echo "=== Install fontconfig, libxcb, mesa via conda-forge ==="
-          $HOME/miniconda/bin/conda install -n py311 -y -c conda-forge fontconfig libxcb mesa-libgl-devel
+          echo "=== Install fontconfig, libxcb via conda-forge ==="
+          $HOME/miniconda/bin/conda install -n py311 -y -c conda-forge fontconfig libxcb
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
 
@@ -105,16 +96,7 @@ jobs:
         run: |
           curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-          cat > ~/.condarc << 'EOF'
-          channels:
-            - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-            - conda-forge
-          custom_multichannels:
-            defaults:
-              - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-          show_channel_urls: true
-          channel_priority: strict
-          EOF
+          printf 'channels:\n  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main\n  - conda-forge\ncustom_multichannels:\n  defaults:\n    - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main\nshow_channel_urls: true\nchannel_priority: strict\n' > ~/.condarc
           echo "=== .condarc contents ==="
           cat ~/.condarc
           echo "=== Create py311 environment ==="
@@ -125,8 +107,8 @@ jobs:
 
       - name: Install Qt dependencies via conda
         run: |
-          echo "=== Install fontconfig, libxcb, mesa via conda-forge ==="
-          $HOME/miniconda/bin/conda install -n py311 -y -c conda-forge fontconfig libxcb mesa-libgl-devel
+          echo "=== Install fontconfig, libxcb via conda-forge ==="
+          $HOME/miniconda/bin/conda install -n py311 -y -c conda-forge fontconfig libxcb
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
 
