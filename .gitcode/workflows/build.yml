@@ -40,47 +40,35 @@ jobs:
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
 
-      - name: Configure pip mirror
+      - name: Install dependencies and run checks
         run: |
           cd repo_workspace
+          CONDA_PYTHON="$HOME/miniconda/envs/py311/bin/python"
+          CONDA_PIP="$HOME/miniconda/envs/py311/bin/pip"
+          CONDA_BIN="$HOME/miniconda/envs/py311/bin"
+          export PATH="$CONDA_BIN:$PATH"
+          export LD_LIBRARY_PATH="$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH"
+
+          echo "=== Configure pip mirror ==="
           mkdir -p ~/.pip
-          echo "[global]" > ~/.pip/pip.conf
-          echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
-          echo "timeout = 120" >> ~/.pip/pip.conf
+          printf '[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntimeout = 120\n' > ~/.pip/pip.conf
 
-      - name: Install test dependencies
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          echo "=== Install test dependencies ==="
+          $CONDA_PIP install --upgrade pip
+          $CONDA_PIP install -r requirements.txt
+          $CONDA_PIP install -r requirements-dev.txt
 
-      - name: Check code formatting (black)
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          black --check src/ tests/
+          echo "=== Check code formatting (black) ==="
+          $CONDA_BIN/black --check src/ tests/
 
-      - name: Lint code (flake8)
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          flake8 src/ tests/ --max-line-length=120
+          echo "=== Lint code (flake8) ==="
+          $CONDA_BIN/flake8 src/ tests/ --max-line-length=120
 
-      - name: Run pytest with coverage
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+          echo "=== Run pytest with coverage ==="
+          QT_QPA_PLATFORM=offscreen $CONDA_PYTHON -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
 
-      - name: Run type check (mypy)
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          python -m mypy src/ --ignore-missing-imports --no-error-summary || true
+          echo "=== Run type check (mypy) ==="
+          $CONDA_PYTHON -m mypy src/ --ignore-missing-imports --no-error-summary || true
 
   build:
     runs-on: euleros-2.10.1
@@ -112,38 +100,33 @@ jobs:
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
 
-      - name: Configure pip mirror
+      - name: Install dependencies and build
         run: |
           cd repo_workspace
+          CONDA_PYTHON="$HOME/miniconda/envs/py311/bin/python"
+          CONDA_PIP="$HOME/miniconda/envs/py311/bin/pip"
+          CONDA_BIN="$HOME/miniconda/envs/py311/bin"
+          export PATH="$CONDA_BIN:$PATH"
+          export LD_LIBRARY_PATH="$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH"
+
+          echo "=== Configure pip mirror ==="
           mkdir -p ~/.pip
-          echo "[global]" > ~/.pip/pip.conf
-          echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
-          echo "timeout = 120" >> ~/.pip/pip.conf
+          printf '[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntimeout = 120\n' > ~/.pip/pip.conf
 
-      - name: Install build dependencies
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          echo "=== Install build dependencies ==="
+          $CONDA_PIP install --upgrade pip
+          $CONDA_PIP install -r requirements.txt
+          $CONDA_PIP install pyinstaller
 
-      - name: Build PyInstaller executable
-        run: |
-          cd repo_workspace
-          export PATH=$HOME/miniconda/envs/py311/bin:$PATH
-          python package/build.py
+          echo "=== Build PyInstaller executable ==="
+          $CONDA_PYTHON package/build.py
 
-      - name: Create distribution archive
-        run: |
-          cd repo_workspace
+          echo "=== Create distribution archive ==="
           cd dist
           tar czf OpenHarmonyFileBrowser-Linux-x64.tar.gz OpenHarmonyFileBrowser/
 
-      - name: Check build output
-        run: |
-          cd repo_workspace
+          echo "=== Check build output ==="
+          cd ..
           if [ -d "dist/OpenHarmonyFileBrowser" ]; then
             echo "Build output found at: dist/OpenHarmonyFileBrowser"
             ls -la dist/
