@@ -25,26 +25,23 @@ jobs:
           curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
           export PATH="$HOME/miniconda/bin:$PATH"
+          conda config --remove channels defaults
           conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
           conda config --set show_channel_urls yes
           conda create -n py311 python=3.11.9 -y
-          source $HOME/miniconda/bin/activate py311
-          python --version
-          python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+          $HOME/miniconda/bin/conda run -n py311 python --version
+          $HOME/miniconda/bin/conda run -n py311 python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
 
       - name: Install Qt dependencies via conda
         run: |
-          source $HOME/miniconda/bin/activate py311
           echo "=== Install fontconfig, libxcb, mesa via conda-forge ==="
-          conda install -y -c conda-forge fontconfig libxcb mesa-libgl-devel
+          $HOME/miniconda/bin/conda run -n py311 conda install -y --override-channels -c conda-forge fontconfig libxcb mesa-libgl-devel
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
-          ldconfig -p 2>/dev/null | grep fontconfig || echo "ldconfig: fontconfig not in system cache"
 
       - name: Configure pip mirror
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           mkdir -p ~/.pip
           echo "[global]" > ~/.pip/pip.conf
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
@@ -53,36 +50,31 @@ jobs:
       - name: Install test dependencies
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          $HOME/miniconda/bin/conda run -n py311 pip install --upgrade pip
+          $HOME/miniconda/bin/conda run -n py311 pip install -r requirements.txt
+          $HOME/miniconda/bin/conda run -n py311 pip install -r requirements-dev.txt
 
       - name: Check code formatting (black)
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          black --check src/ tests/
+          $HOME/miniconda/bin/conda run -n py311 black --check src/ tests/
 
       - name: Lint code (flake8)
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          flake8 src/ tests/ --max-line-length=120
+          $HOME/miniconda/bin/conda run -n py311 flake8 src/ tests/ --max-line-length=120
 
       - name: Run pytest with coverage
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+          $HOME/miniconda/bin/conda run -n py311 bash -c "QT_QPA_PLATFORM=offscreen python -m pytest tests/ -v --tb=short --cov=src --cov-report=term-missing"
 
       - name: Run type check (mypy)
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          python -m mypy src/ --ignore-missing-imports --no-error-summary || true
+          $HOME/miniconda/bin/conda run -n py311 python -m mypy src/ --ignore-missing-imports --no-error-summary || true
 
   build:
     runs-on: euleros-2.10.1
@@ -99,26 +91,23 @@ jobs:
           curl -O https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
           export PATH="$HOME/miniconda/bin:$PATH"
+          conda config --remove channels defaults
           conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
           conda config --set show_channel_urls yes
           conda create -n py311 python=3.11.9 -y
-          source $HOME/miniconda/bin/activate py311
-          python --version
-          python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+          $HOME/miniconda/bin/conda run -n py311 python --version
+          $HOME/miniconda/bin/conda run -n py311 python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
 
       - name: Install Qt dependencies via conda
         run: |
-          source $HOME/miniconda/bin/activate py311
           echo "=== Install fontconfig, libxcb, mesa via conda-forge ==="
-          conda install -y -c conda-forge fontconfig libxcb mesa-libgl-devel
+          $HOME/miniconda/bin/conda run -n py311 conda install -y --override-channels -c conda-forge fontconfig libxcb mesa-libgl-devel
           echo "=== Verify installed libraries ==="
           ls -la $HOME/miniconda/envs/py311/lib/libfontconfig* 2>&1 || true
-          ldconfig -p 2>/dev/null | grep fontconfig || echo "ldconfig: fontconfig not in system cache"
 
       - name: Configure pip mirror
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           mkdir -p ~/.pip
           echo "[global]" > ~/.pip/pip.conf
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
@@ -127,30 +116,24 @@ jobs:
       - name: Install build dependencies
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           export LD_LIBRARY_PATH=$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          $HOME/miniconda/bin/conda run -n py311 pip install --upgrade pip
+          $HOME/miniconda/bin/conda run -n py311 pip install -r requirements.txt
+          $HOME/miniconda/bin/conda run -n py311 pip install pyinstaller
 
       - name: Build PyInstaller executable
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          python package/build.py
+          $HOME/miniconda/bin/conda run -n py311 python package/build.py
 
       - name: Create distribution archive
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
-          cd dist
-          tar czf "OpenHarmonyFileBrowser-Linux-x64.tar.gz" "OpenHarmonyFileBrowser/"
-          cd ..
+          $HOME/miniconda/bin/conda run -n py311 bash -c "cd dist && tar czf OpenHarmonyFileBrowser-Linux-x64.tar.gz OpenHarmonyFileBrowser/"
 
       - name: Check build output
         run: |
           cd repo_workspace
-          source $HOME/miniconda/bin/activate py311
           if [ -d "dist/OpenHarmonyFileBrowser" ]; then
             echo "Build output found at: dist/OpenHarmonyFileBrowser"
             ls -la dist/
