@@ -28,7 +28,7 @@ jobs:
           echo "=== .condarc contents ==="
           cat ~/.condarc
           echo "=== Create py311 environment ==="
-          $HOME/miniconda/bin/conda create -n py311 python=3.11.9 -y
+          $HOME/miniconda/bin/conda create -n py311 python=3.11.9 pip -y
           echo "=== Verify Python ==="
           $HOME/miniconda/envs/py311/bin/python --version
           $HOME/miniconda/envs/py311/bin/python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
@@ -88,7 +88,7 @@ jobs:
           echo "=== .condarc contents ==="
           cat ~/.condarc
           echo "=== Create py311 environment ==="
-          $HOME/miniconda/bin/conda create -n py311 python=3.11.9 -y
+          $HOME/miniconda/bin/conda create -n py311 python=3.11.9 pip -y
           echo "=== Verify Python ==="
           $HOME/miniconda/envs/py311/bin/python --version
           $HOME/miniconda/envs/py311/bin/python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
