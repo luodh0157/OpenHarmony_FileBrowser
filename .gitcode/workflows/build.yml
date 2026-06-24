@@ -18,7 +18,11 @@ jobs:
       #- name: Setup Python
       #  uses: setup-python@0.0.1
       #  with:
-      #    python-version: '3.8.18' # 打包会失败，报错：ERROR: Python was built without a shared library, which is required by PyInstaller. 
+      #    python-version: '3.8.18' # 打包会失败，报错：ERROR: Python was built without a shared library, which is required by PyInstaller.
+
+      - name: Install system dependencies (Qt)
+        run: |
+          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
@@ -26,10 +30,9 @@ jobs:
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
           export PATH="$HOME/miniconda/bin:$PATH"
           conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
-          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
           conda config --set show_channel_urls yes
           conda create -n py311 python=3.11.9 -y
-          source activate py311
+          source $HOME/miniconda/bin/activate py311
           python --version
           python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
 
@@ -42,15 +45,10 @@ jobs:
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
           echo "timeout = 120" >> ~/.pip/pip.conf
 
-      - name: Install system dependencies (Qt)
-        run: |
-          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
-
       - name: Install test dependencies
         run: |
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
-          export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
@@ -88,7 +86,11 @@ jobs:
       #- name: Setup Python
       #  uses: setup-python@0.0.1
       #  with:
-      #    python-version: '3.8.18' # 打包会失败，报错：ERROR: Python was built without a shared library, which is required by PyInstaller. 
+      #    python-version: '3.8.18' # 打包会失败，报错：ERROR: Python was built without a shared library, which is required by PyInstaller.
+
+      - name: Install system dependencies (Qt)
+        run: |
+          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
@@ -96,10 +98,9 @@ jobs:
           bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
           export PATH="$HOME/miniconda/bin:$PATH"
           conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
-          conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
           conda config --set show_channel_urls yes
           conda create -n py311 python=3.11.9 -y
-          source activate py311
+          source $HOME/miniconda/bin/activate py311
           python --version
           python -c "import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
 
@@ -112,15 +113,10 @@ jobs:
           echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
           echo "timeout = 120" >> ~/.pip/pip.conf
 
-      - name: Install system dependencies (Qt)
-        run: |
-          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
-
       - name: Install build dependencies
         run: |
           cd repo_workspace
           source $HOME/miniconda/bin/activate py311
-          export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
