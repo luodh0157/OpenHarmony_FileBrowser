@@ -31,21 +31,19 @@ jobs:
           ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
           echo "--- /bin/yum shebang ---"
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
-          echo "=== Fix: Ensure /usr/bin/python3 exists ==="
+          echo "=== Fix: Determine Python for yum ==="
+          YUM_PYTHON="/usr/bin/python3"
           if [ ! -e /usr/bin/python3 ]; then
-            PYTHON3_BIN=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
-            if [ -n "$PYTHON3_BIN" ]; then
-              ln -sf "$PYTHON3_BIN" /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> $PYTHON3_BIN"
+            YUM_PYTHON=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
+            if [ -n "$YUM_PYTHON" ]; then
+              echo "WARNING: /usr/bin/python3 not found, using $YUM_PYTHON for yum"
             else
-              echo "ERROR: Cannot find any python3.x binary in /usr/bin or /usr/libexec"
+              echo "ERROR: Cannot find any python3.x binary"
               exit 1
             fi
           fi
-          echo "--- Verify /usr/bin/python3 ---"
-          ls -la /usr/bin/python3
           echo "=== Install Qt system dependencies ==="
-          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
@@ -122,21 +120,19 @@ jobs:
           ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
           echo "--- /bin/yum shebang ---"
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
-          echo "=== Fix: Ensure /usr/bin/python3 exists ==="
+          echo "=== Fix: Determine Python for yum ==="
+          YUM_PYTHON="/usr/bin/python3"
           if [ ! -e /usr/bin/python3 ]; then
-            PYTHON3_BIN=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
-            if [ -n "$PYTHON3_BIN" ]; then
-              ln -sf "$PYTHON3_BIN" /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> $PYTHON3_BIN"
+            YUM_PYTHON=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
+            if [ -n "$YUM_PYTHON" ]; then
+              echo "WARNING: /usr/bin/python3 not found, using $YUM_PYTHON for yum"
             else
-              echo "ERROR: Cannot find any python3.x binary in /usr/bin or /usr/libexec"
+              echo "ERROR: Cannot find any python3.x binary"
               exit 1
             fi
           fi
-          echo "--- Verify /usr/bin/python3 ---"
-          ls -la /usr/bin/python3
           echo "=== Install Qt system dependencies ==="
-          yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
