@@ -58,7 +58,7 @@ jobs:
           cat "$REPO_DIR/CentOS-Vault.repo"
 
           echo "=== Install Qt system dependencies ==="
-          $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          sudo $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
@@ -162,7 +162,7 @@ jobs:
           cat "$REPO_DIR/CentOS-Vault.repo"
 
           echo "=== Install Qt system dependencies ==="
-          $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
+          sudo $YUM_PYTHON /usr/bin/yum --setopt=reposdir="$REPO_DIR" install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
       - name: Install Python via Miniconda
         run: |
