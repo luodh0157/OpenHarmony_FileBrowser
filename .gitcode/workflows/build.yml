@@ -31,6 +31,11 @@ jobs:
           ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
           echo "--- /bin/yum shebang ---"
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
+          echo "--- /etc/yum.repos.d/ contents ---"
+          ls -la /etc/yum.repos.d/ 2>&1 || echo "No /etc/yum.repos.d/ directory"
+          echo "--- Existing repo files ---"
+          for f in /etc/yum.repos.d/*.repo; do [ -e "$f" ] && echo "FILE: $f" && grep -E "^\[|^name=|^baseurl=|^enabled=" "$f" 2>&1; done || echo "No .repo files found"
+
           echo "=== Fix: Determine Python for yum ==="
           YUM_PYTHON="/usr/bin/python3"
           if [ ! -e /usr/bin/python3 ]; then
@@ -42,6 +47,35 @@ jobs:
               exit 1
             fi
           fi
+
+          echo "=== Fix: Check yum repositories ==="
+          REPO_LIST=$($YUM_PYTHON /usr/bin/yum repolist 2>&1)
+          echo "$REPO_LIST"
+          REPO_COUNT=$(echo "$REPO_LIST" | grep -c "repo-id" || true)
+          echo "Active repo count: $REPO_COUNT"
+
+          if [ "$REPO_COUNT" -eq 0 ]; then
+            echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
+            echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
+            cat > /etc/yum.repos.d/CentOS-Vault.repo << 'REPOEOF'
+[baseos]
+name=CentOS-8 - BaseOS - TUNA
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/$basearch/os/
+enabled=1
+gpgcheck=0
+
+[appstream]
+name=CentOS-8 - AppStream - TUNA
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/$basearch/os/
+enabled=1
+gpgcheck=0
+REPOEOF
+            echo "Repo config written. Verifying..."
+            cat /etc/yum.repos.d/CentOS-Vault.repo
+          else
+            echo "Repos already configured, skipping repo setup."
+          fi
+
           echo "=== Install Qt system dependencies ==="
           $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
@@ -120,6 +154,11 @@ jobs:
           ls -la /usr/bin/python 2>&1 || echo "No /usr/bin/python found"
           echo "--- /bin/yum shebang ---"
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
+          echo "--- /etc/yum.repos.d/ contents ---"
+          ls -la /etc/yum.repos.d/ 2>&1 || echo "No /etc/yum.repos.d/ directory"
+          echo "--- Existing repo files ---"
+          for f in /etc/yum.repos.d/*.repo; do [ -e "$f" ] && echo "FILE: $f" && grep -E "^\[|^name=|^baseurl=|^enabled=" "$f" 2>&1; done || echo "No .repo files found"
+
           echo "=== Fix: Determine Python for yum ==="
           YUM_PYTHON="/usr/bin/python3"
           if [ ! -e /usr/bin/python3 ]; then
@@ -131,6 +170,35 @@ jobs:
               exit 1
             fi
           fi
+
+          echo "=== Fix: Check yum repositories ==="
+          REPO_LIST=$($YUM_PYTHON /usr/bin/yum repolist 2>&1)
+          echo "$REPO_LIST"
+          REPO_COUNT=$(echo "$REPO_LIST" | grep -c "repo-id" || true)
+          echo "Active repo count: $REPO_COUNT"
+
+          if [ "$REPO_COUNT" -eq 0 ]; then
+            echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
+            echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
+            cat > /etc/yum.repos.d/CentOS-Vault.repo << 'REPOEOF'
+[baseos]
+name=CentOS-8 - BaseOS - TUNA
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/$basearch/os/
+enabled=1
+gpgcheck=0
+
+[appstream]
+name=CentOS-8 - AppStream - TUNA
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/$basearch/os/
+enabled=1
+gpgcheck=0
+REPOEOF
+            echo "Repo config written. Verifying..."
+            cat /etc/yum.repos.d/CentOS-Vault.repo
+          else
+            echo "Repos already configured, skipping repo setup."
+          fi
+
           echo "=== Install Qt system dependencies ==="
           $YUM_PYTHON /usr/bin/yum install -y fontconfig mesa-libEGL mesa-libGL libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm
 
