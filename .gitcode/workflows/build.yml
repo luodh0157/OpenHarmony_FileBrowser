@@ -57,19 +57,19 @@ jobs:
           if [ "$REPO_COUNT" -eq 0 ]; then
             echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
             echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
-            cat > /etc/yum.repos.d/CentOS-Vault.repo << 'REPOEOF'
-[baseos]
-name=CentOS-8 - BaseOS - TUNA
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/$basearch/os/
-enabled=1
-gpgcheck=0
-
-[appstream]
-name=CentOS-8 - AppStream - TUNA
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/$basearch/os/
-enabled=1
-gpgcheck=0
-REPOEOF
+            {
+              echo "[baseos]"
+              echo "name=CentOS-8 - BaseOS - TUNA"
+              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
+              echo "enabled=1"
+              echo "gpgcheck=0"
+              echo ""
+              echo "[appstream]"
+              echo "name=CentOS-8 - AppStream - TUNA"
+              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
+              echo "enabled=1"
+              echo "gpgcheck=0"
+            } > /etc/yum.repos.d/CentOS-Vault.repo
             echo "Repo config written. Verifying..."
             cat /etc/yum.repos.d/CentOS-Vault.repo
           else
@@ -180,19 +180,19 @@ REPOEOF
           if [ "$REPO_COUNT" -eq 0 ]; then
             echo "No repos found, adding CentOS 8 vault repos from TUNA mirror..."
             echo "Writing to /etc/yum.repos.d/CentOS-Vault.repo..."
-            cat > /etc/yum.repos.d/CentOS-Vault.repo << 'REPOEOF'
-[baseos]
-name=CentOS-8 - BaseOS - TUNA
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/$basearch/os/
-enabled=1
-gpgcheck=0
-
-[appstream]
-name=CentOS-8 - AppStream - TUNA
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/$basearch/os/
-enabled=1
-gpgcheck=0
-REPOEOF
+            {
+              echo "[baseos]"
+              echo "name=CentOS-8 - BaseOS - TUNA"
+              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/BaseOS/\$basearch/os/"
+              echo "enabled=1"
+              echo "gpgcheck=0"
+              echo ""
+              echo "[appstream]"
+              echo "name=CentOS-8 - AppStream - TUNA"
+              echo "baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.5.2111/AppStream/\$basearch/os/"
+              echo "enabled=1"
+              echo "gpgcheck=0"
+            } > /etc/yum.repos.d/CentOS-Vault.repo
             echo "Repo config written. Verifying..."
             cat /etc/yum.repos.d/CentOS-Vault.repo
           else
