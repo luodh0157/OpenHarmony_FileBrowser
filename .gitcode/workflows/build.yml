@@ -104,19 +104,22 @@ jobs:
         run: |
           cd repo_workspace
           CONDA_PYTHON="$HOME/miniconda/envs/py311/bin/python"
-          CONDA_PIP="$HOME/miniconda/envs/py311/bin/pip"
           CONDA_BIN="$HOME/miniconda/envs/py311/bin"
           export PATH="$CONDA_BIN:$PATH"
           export LD_LIBRARY_PATH="$HOME/miniconda/envs/py311/lib:$LD_LIBRARY_PATH"
+
+          echo "=== Verify conda environment ==="
+          $CONDA_PYTHON --version
+          ls -la $HOME/miniconda/envs/py311/bin/ 2>&1 || true
 
           echo "=== Configure pip mirror ==="
           mkdir -p ~/.pip
           printf '[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntimeout = 120\n' > ~/.pip/pip.conf
 
           echo "=== Install build dependencies ==="
-          $CONDA_PIP install --upgrade pip
-          $CONDA_PIP install -r requirements.txt
-          $CONDA_PIP install pyinstaller
+          $CONDA_PYTHON -m pip install --upgrade pip
+          $CONDA_PYTHON -m pip install -r requirements.txt
+          $CONDA_PYTHON -m pip install pyinstaller
 
           echo "=== Build PyInstaller executable ==="
           $CONDA_PYTHON package/build.py
