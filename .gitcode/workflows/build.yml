@@ -33,14 +33,12 @@ jobs:
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
           echo "=== Fix: Ensure /usr/bin/python3 exists ==="
           if [ ! -e /usr/bin/python3 ]; then
-            if [ -e /usr/libexec/platform-python ]; then
-              ln -sf /usr/libexec/platform-python /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> /usr/libexec/platform-python"
-            elif [ -e /usr/libexec/platform-python3 ]; then
-              ln -sf /usr/libexec/platform-python3 /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> /usr/libexec/platform-python3"
+            PYTHON3_BIN=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
+            if [ -n "$PYTHON3_BIN" ]; then
+              ln -sf "$PYTHON3_BIN" /usr/bin/python3
+              echo "Created symlink: /usr/bin/python3 -> $PYTHON3_BIN"
             else
-              echo "ERROR: Cannot find platform-python to create symlink"
+              echo "ERROR: Cannot find any python3.x binary in /usr/bin or /usr/libexec"
               exit 1
             fi
           fi
@@ -126,14 +124,12 @@ jobs:
           head -1 /bin/yum 2>&1 || echo "Cannot read /bin/yum"
           echo "=== Fix: Ensure /usr/bin/python3 exists ==="
           if [ ! -e /usr/bin/python3 ]; then
-            if [ -e /usr/libexec/platform-python ]; then
-              ln -sf /usr/libexec/platform-python /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> /usr/libexec/platform-python"
-            elif [ -e /usr/libexec/platform-python3 ]; then
-              ln -sf /usr/libexec/platform-python3 /usr/bin/python3
-              echo "Created symlink: /usr/bin/python3 -> /usr/libexec/platform-python3"
+            PYTHON3_BIN=$(find /usr/bin /usr/libexec -maxdepth 1 -name "python3.[0-9]*" -type f 2>/dev/null | sort -V | tail -1)
+            if [ -n "$PYTHON3_BIN" ]; then
+              ln -sf "$PYTHON3_BIN" /usr/bin/python3
+              echo "Created symlink: /usr/bin/python3 -> $PYTHON3_BIN"
             else
-              echo "ERROR: Cannot find platform-python to create symlink"
+              echo "ERROR: Cannot find any python3.x binary in /usr/bin or /usr/libexec"
               exit 1
             fi
           fi
