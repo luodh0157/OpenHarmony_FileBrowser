@@ -3,6 +3,7 @@
 支持亮色/暗色主题切换，并保存用户偏好
 """
 
+import re
 import sys
 from pathlib import Path
 from PySide6.QtCore import QObject, Signal
@@ -29,6 +30,28 @@ def get_resource_path(relative_path: str) -> Path:
     result = base_path / relative_path
     _resource_cache[relative_path] = result
     return result
+
+
+def _get_base_path() -> Path:
+    """Get the base path for resolving resource URLs (project root in dev, _MEIPASS in PyInstaller)."""
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS)
+    else:
+        return Path(__file__).parent.parent.parent.parent
+
+
+def _resolve_qss_urls(stylesheet: str) -> str:
+    """Resolve relative url() paths in QSS to absolute paths for PyInstaller compatibility."""
+    base_path = _get_base_path()
+
+    def replace_url(match):
+        relative_path = match.group(1).strip()
+        if relative_path.startswith(":/") or relative_path.startswith("/") or relative_path.startswith(("http://", "https://", "file://")):
+            return match.group(0)
+        absolute_path = base_path / relative_path
+        return f"url({absolute_path.as_posix()})"
+
+    return re.sub(r'url\(([^)]+)\)', replace_url, stylesheet)
 
 
 logger = get_logger(__name__)
@@ -105,6 +128,9 @@ class ThemeManager(QObject):
     def apply_stylesheet(self):
         """
         应用当前主题的样式表
+
+        将QSS中的相对url()路径替换为绝对路径，
+        以确保PyInstaller打包后资源文件能正确加载。
         """
         try:
             qss_file = self.styles_dir / f"modern_{self.current_theme}.qss"
@@ -112,6 +138,7 @@ class ThemeManager(QObject):
             if qss_file.exists():
                 with open(qss_file, "r", encoding="utf-8") as f:
                     stylesheet = f.read()
+                    stylesheet = _resolve_qss_urls(stylesheet)
                     self.main_window.setStyleSheet(stylesheet)
                     logger.info(f"Applied stylesheet: {qss_file}")
             else:
