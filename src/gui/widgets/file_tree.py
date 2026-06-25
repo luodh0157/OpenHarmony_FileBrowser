@@ -344,6 +344,7 @@ class FileTreeWidget(QWidget):
 
         self._is_expanding_to_path = False
         if current_item:
+            self._ensure_item_loaded(current_item, path)
             self.tree.setCurrentItem(current_item)
             self.directory_selected.emit(path)
 
@@ -371,6 +372,7 @@ class FileTreeWidget(QWidget):
 
             if not remaining_parts:
                 self._is_expanding_to_path = False
+                self._ensure_item_loaded(parent_item, target_path)
                 self.directory_selected.emit(target_path)
                 return
 
@@ -453,6 +455,18 @@ class FileTreeWidget(QWidget):
         self._load_threads.pop(path, None)
         on_error(error_msg)
 
+    def _ensure_item_loaded(self, item: QTreeWidgetItem, path: str):
+        """Remove loading placeholder and trigger async load for a tree item."""
+        loading_text = language_manager.tr("file_tree.loading")
+        if item.childCount() > 0:
+            first_child = item.child(0)
+            if (
+                first_child.data(0, Qt.UserRole) is None
+                and first_child.text(0) == loading_text
+            ):
+                item.takeChild(0)
+                self._load_directory_contents_async(path, item)
+
     def _expand_remaining(self, current_item, current_path, part, remaining_parts):
         """Continue expanding remaining path parts."""
         new_path = f"{current_path}/{part}" if current_path != "/" else f"/{part}"
@@ -460,6 +474,7 @@ class FileTreeWidget(QWidget):
 
         if not remaining_parts:
             self._is_expanding_to_path = False
+            self._ensure_item_loaded(current_item, new_path)
             self.tree.setCurrentItem(current_item)
             self.directory_selected.emit(new_path)
             return
