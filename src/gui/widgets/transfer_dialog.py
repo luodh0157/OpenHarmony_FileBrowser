@@ -360,7 +360,9 @@ class TransferDialog(QDialog):
         self.table.setItem(row, 2, progress_item)
 
         size_text = (
-            format_file_size(task.total_size) if task.total_size > 0 else "Unknown"
+            format_file_size(task.total_size)
+            if task.total_size > 0
+            else language_manager.tr("transfer.unknown_size")
         )
         size_item = QTableWidgetItem(size_text)
         self.table.setItem(row, 3, size_item)

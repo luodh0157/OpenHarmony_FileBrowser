@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Optional
 import json
 
+from src.utils.resource_utils import get_resource_path, get_user_data_dir
+
 
 @dataclass
 class Config:
@@ -40,10 +42,8 @@ class Config:
 
     def __post_init__(self):
         """Initialize default paths."""
-        config_dir = Path(__file__).parent.parent / "config"
-
         if self.log_dir is None:
-            self.log_dir = config_dir / "logs"
+            self.log_dir = get_user_data_dir() / "logs"
 
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> "Config":
@@ -57,7 +57,9 @@ class Config:
             Config instance
         """
         if config_path is None:
-            config_path = Path(__file__).parent.parent / "config" / "config.json"
+            config_path = get_user_data_dir() / "config.json"
+            if not config_path.exists():
+                config_path = get_resource_path("config") / "config.json"
 
         if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
@@ -76,7 +78,7 @@ class Config:
             config_path: Path to config file
         """
         if config_path is None:
-            config_path = Path(__file__).parent.parent / "config" / "config.json"
+            config_path = get_user_data_dir() / "config.json"
 
         data = {
             "window_width": self.window_width,

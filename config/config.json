@@ -4,6 +4,6 @@
   "log_level": "INFO",
   "transfer_max_workers": 3,
   "preview_max_size": 10485760,
-  "theme": "light",
+  "theme": "dark",
   "language": "zh"
 }

@@ -3,33 +3,14 @@
 支持国际化，保存用户偏好
 """
 
-import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 import json
 from PySide6.QtCore import QObject, Signal
 
-
+from src.utils.resource_utils import get_resource_path
 from src.utils.logger import get_logger
 from src.config import config
-
-_resource_cache = {}
-
-
-def get_resource_path(relative_path: str) -> Path:
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    if relative_path in _resource_cache:
-        return _resource_cache[relative_path]
-
-    if getattr(sys, "frozen", False):
-        base_path = Path(sys._MEIPASS)
-    else:
-        base_path = Path(__file__).parent.parent.parent
-
-    result = base_path / relative_path
-    _resource_cache[relative_path] = result
-    return result
-
 
 logger = get_logger(__name__)
 

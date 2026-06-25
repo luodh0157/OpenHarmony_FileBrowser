@@ -4,54 +4,32 @@
 """
 
 import re
-import sys
-from pathlib import Path
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow
 
+from src.utils.resource_utils import get_resource_path
 from src.utils.icon_manager import icon_manager
 from src.utils.logger import get_logger
 from src.config import config
 
-_resource_cache = {}
-
-
-def get_resource_path(relative_path: str) -> Path:
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    if relative_path in _resource_cache:
-        return _resource_cache[relative_path]
-
-    if getattr(sys, "frozen", False):
-        base_path = Path(sys._MEIPASS)
-    else:
-        base_path = Path(__file__).parent.parent.parent.parent
-
-    result = base_path / relative_path
-    _resource_cache[relative_path] = result
-    return result
-
-
-def _get_base_path() -> Path:
-    """Get the base path for resolving resource URLs (project root in dev, _MEIPASS in PyInstaller)."""
-    if getattr(sys, "frozen", False):
-        return Path(sys._MEIPASS)
-    else:
-        return Path(__file__).parent.parent.parent.parent
-
 
 def _resolve_qss_urls(stylesheet: str) -> str:
     """Resolve relative url() paths in QSS to absolute paths for PyInstaller compatibility."""
-    base_path = _get_base_path()
+    base_path = get_resource_path("")
 
     def replace_url(match):
         relative_path = match.group(1).strip()
-        if relative_path.startswith(":/") or relative_path.startswith("/") or relative_path.startswith(("http://", "https://", "file://")):
+        if (
+            relative_path.startswith(":/")
+            or relative_path.startswith("/")
+            or relative_path.startswith(("http://", "https://", "file://"))
+        ):
             return match.group(0)
         absolute_path = base_path / relative_path
         return f"url({absolute_path.as_posix()})"
 
-    return re.sub(r'url\(([^)]+)\)', replace_url, stylesheet)
+    return re.sub(r"url\(([^)]+)\)", replace_url, stylesheet)
 
 
 logger = get_logger(__name__)

@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         self._loading_widget = None
         self._device_status_id: Optional[str] = None
         self._device_status_name: Optional[str] = None
+        self._item_count: int = 0
 
         # Menu actions (for language update)
         self.theme_action: Optional[QAction] = None
@@ -240,6 +241,12 @@ class MainWindow(QMainWindow):
         if hasattr(self, "device_label_status") and self.device_label_status:
             self.update_device_status(self._device_status_id, self._device_status_name)
 
+        # Update file count label
+        if hasattr(self, "file_count_label") and self.file_count_label:
+            self.file_count_label.setText(
+                language_manager.tr("status.items", count=self._item_count)
+            )
+
         # Update menu bar
         self._update_menu_language()
 
@@ -338,31 +345,13 @@ class MainWindow(QMainWindow):
 
     def set_status_message(self, message: str):
         """Update status bar message (file count info)."""
-        # message contains count like "5 items" or path info
-        # Try to extract count for translation
-        try:
-            parts = message.split()
-            if parts and parts[0].isdigit():
-                count = int(parts[0])
-                translated = language_manager.tr("status.items", count=count)
-                self.file_count_label.setText(translated)
-                return
-        except Exception:
-            pass
-
-        # Check if it's a path status message
-        if " - " in message:
-            parts = message.split(" - ", 1)
-            if len(parts) == 2 and parts[1].endswith("items"):
-                try:
-                    count = int(parts[1].split()[0])
-                    self.file_count_label.setText(
-                        language_manager.tr("status.items", count=count)
-                    )
-                    return
-                except Exception:
-                    pass
-
+        if message.isdigit():
+            count = int(message)
+            self._item_count = count
+            self.file_count_label.setText(
+                language_manager.tr("status.items", count=count)
+            )
+            return
         self.file_count_label.setText(message)
 
     def update_device_status(self, device_id: str = None, device_name: str = None):
@@ -394,7 +383,7 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             logger.error(f"Failed to initialize device manager: {e}")
-            self.file_count_label.setText(f"Error: {e}")
+            self.file_count_label.setText(language_manager.tr("status.error", e=str(e)))
 
             show_warning_dialog(
                 language_manager.tr("dialogs.hdc_not_found"),

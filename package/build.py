@@ -46,6 +46,7 @@ def build():
             json.dump(default_config, f, indent=2)
     
     platform_name = get_platform()
+    separator = ";" if platform.system() == "Windows" else ":"
     
     params = [
         str(project_root / "main.py"),
@@ -53,14 +54,20 @@ def build():
         "--windowed",
         "--onedir",
         "--optimize=1",
-        f"--add-data={hdc_dir}:hdc",
-        f"--add-data={resources_dir}:resources",
-        f"--add-data={config_json}:config",  # 只打包 config.json，不打包 logs
+        f"--add-data={hdc_dir}{separator}hdc",
+        f"--add-data={resources_dir}{separator}resources",
+        f"--add-data={config_json}{separator}config",
         "--clean",
         "--noconfirm",
         f"--distpath={project_root / 'dist'}",
         f"--workpath={project_root / 'build'}",
         f"--specpath={project_root}",
+        "--hidden-import=PySide6.QtWidgets",
+        "--hidden-import=PySide6.QtCore",
+        "--hidden-import=PySide6.QtGui",
+        "--hidden-import=PySide6.QtSvg",
+        "--hidden-import=PIL",
+        "--hidden-import=PIL.Image",
     ]
     
     icon_path = None

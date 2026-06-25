@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from src.utils.resource_utils import get_resource_path
+
 
 def get_platform() -> str:
     """
@@ -56,7 +58,7 @@ def get_hdc_executable(hdc_dir: Optional[Path] = None) -> Path:
         FileNotFoundError: If HDC executable not found
     """
     if hdc_dir is None:
-        hdc_dir = Path(__file__).parent.parent.parent / "hdc"
+        hdc_dir = get_resource_path("hdc")
 
     current_platform = get_platform()
     current_arch = get_architecture()

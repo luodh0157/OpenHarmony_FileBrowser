@@ -366,7 +366,7 @@ class FileListWidget(QWidget):
         self.files = files
         self._display_files()
         self._hide_loading()
-        self.status_message.emit(f"{self.current_path} - {len(files)} items")
+        self.status_message.emit(str(len(files)))
         self.selection_changed.emit()
         logger.info(f"Directory loaded and displayed: {len(files)} files")
 

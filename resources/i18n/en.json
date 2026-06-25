@@ -44,7 +44,8 @@
     "scan_error": "Error scanning devices: {e}",
     "items": "{count} items",
     "current_path": "Current: {path}",
-    "refreshed": "Refreshed: {path}"
+    "refreshed": "Refreshed: {path}",
+    "error": "Error: {e}"
   },
 
   "dialogs": {
@@ -163,7 +164,8 @@
     "download": "Download",
     "complete": "Complete",
     "failed": "Failed: {error}",
-    "pending": "Pending"
+    "pending": "Pending",
+    "unknown_size": "Unknown"
   },
 
   "preview": {

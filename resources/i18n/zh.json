@@ -44,7 +44,8 @@
     "scan_error": "扫描设备出错: {e}",
     "items": "{count} 项",
     "current_path": "当前: {path}",
-    "refreshed": "已刷新: {path}"
+    "refreshed": "已刷新: {path}",
+    "error": "错误: {e}"
   },
 
   "dialogs": {
@@ -163,7 +164,8 @@
     "download": "下载",
     "complete": "完成",
     "failed": "失败: {error}",
-    "pending": "等待中"
+    "pending": "等待中",
+    "unknown_size": "未知"
   },
 
   "preview": {
