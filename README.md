@@ -13,6 +13,10 @@
 - **国际化**：支持中文和英文界面
 - **跨平台**：支持 Windows、macOS 和 Linux
 
+## 界面预览
+
+![OpenHarmony文件浏览器界面](OpenHarmony文件浏览器界面.png)
+
 ## 系统要求
 
 - Python 3.9 或更高版本
