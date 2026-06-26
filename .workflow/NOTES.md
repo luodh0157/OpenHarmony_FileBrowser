@@ -49,3 +49,9 @@
 - `release@gitee` 步骤执行 Gitee Release 发布，使用 `${GITEE_BRANCH}` 作为 tag 和 release name
 - `upstreamArtifact` 关联制品，`assertFiles` 声明必须包含的文件名
 - `prerelease: false` 和 `allowUpdate: true` 控制发布属性
+
+9. GLIBC 兼容性限制
+- Gitee runner 使用 conda-forge Python 3.11.9，其编译工具链较新，构建产物可能需要 GLIBC ≥ 2.33
+- 在 Ubuntu 20.04 (glibc 2.31) 或更老系统上无法运行，会报 `GLIBC_X.XX not found` 错误
+- 已知错误：`libpython3.11.so.1.0: version 'GLIBC_2.38' not found`、`libstdc++.so.6: version 'GLIBC_2.33' not found`
+- **本地构建方案**：如果下载的产物无法运行，可下载本仓库源码，在本地执行 `python package/build.py` 打包后运行

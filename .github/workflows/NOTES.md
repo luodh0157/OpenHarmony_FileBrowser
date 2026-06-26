@@ -56,3 +56,9 @@
 - `permissions: contents: write` 为 release job 授权 GITHUB_TOKEN 写入权限
 - 使用 `actions/github-script@v7` 在 CI 失败时自动创建 Issue，标注 `ci-failed` 和 `automated` 标签
 - Release 发布 `draft: false`、`prerelease: false` 表示直接发布正式版
+
+10. GLIBC 兼容性限制
+- `ubuntu-latest` runner 基于 Ubuntu 24.04（glibc 2.39），构建的 Linux 产物需要 GLIBC ≥ 2.39
+- 在 Ubuntu 22.04 (glibc 2.35)、Ubuntu 20.04 (glibc 2.31) 等老系统上无法运行，会报 `GLIBC_X.XX not found` 错误
+- Windows 和 macOS 构建不受 GLIBC 限制
+- **本地构建方案**：如果下载的产物无法运行，可下载本仓库源码，在本地执行 `python package/build.py` 打包后运行

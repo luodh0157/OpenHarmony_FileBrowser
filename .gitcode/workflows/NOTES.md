@@ -41,3 +41,8 @@
 - 建议在每个关键步骤添加诊断日志：`.condarc` 内容、conda 环境列表、bin 目录内容、库文件位置
 - 使用 `ls -la` 验证文件是否存在，避免静默失败
 - 可使用 `::error::` 语法在步骤中标注错误信息
+
+8. GLIBC 兼容性限制
+- EulerOS 2.10.1 的 glibc 2.28 是三个平台中最老的，但 conda-forge 编译的 Python/PySide6 仍可能链接高版本 GLIBC 符号
+- 已知问题：`libstdc++.so.6` 可能要求 GLIBC ≥ 2.33，导致在 Ubuntu 20.04 上运行失败
+- **本地构建方案**：如果下载的产物无法运行，可下载本仓库源码，在本地执行 `python package/build.py` 打包后运行

@@ -13,6 +13,53 @@
 - **国际化**：支持中文和英文界面
 - **跨平台**：支持 Windows、macOS 和 Linux
 
+## Linux 系统兼容性说明
+
+### GLIBC 版本限制
+
+从 Release 页面下载的 Linux 可执行文件在不同发行版上的兼容性取决于构建环境的 GLIBC 版本：
+
+| 构建平台 | 最低 GLIBC 要求 | 兼容系统示例 |
+|---------|----------------|-------------|
+| GitHub Actions | ≥ 2.39 | Ubuntu 24.04+ |
+| Gitee | ≥ 2.33 | Ubuntu 22.04+ |
+| GitCode | ≥ 2.28 | CentOS 8+, EulerOS 2.10+ |
+
+如果你的系统 GLIBC 版本低于上述要求，运行时会报错：
+```
+Failed to load Python shared library: version `GLIBC_X.XX' not found
+```
+
+### 查看系统 GLIBC 版本
+
+```bash
+ldd --version
+```
+
+### 本地构建方案
+
+如果下载的可执行文件无法在你的系统上运行，可以从源码本地打包：
+
+```bash
+# 克隆仓库
+git clone https://gitcode.com/OpenHarmony_Tools/OpenHarmony_FileBrowser.git
+cd OpenHarmony_FileBrowser
+
+# 创建虚拟环境并安装依赖
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install pyinstaller
+
+# 打包可执行文件
+python package/build.py
+
+# 运行打包后的程序
+./dist/OpenHarmonyFileBrowser/OpenHarmonyFileBrowser
+```
+
+本地打包的产物与你的系统 GLIBC 版本完全兼容。
+
 ## 界面预览
 
 ![OpenHarmony文件浏览器界面](OpenHarmony文件浏览器界面.png)
