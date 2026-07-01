@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QImage, QFont
+from PySide6.QtGui import QPixmap, QImage, QFont, QTransform
 
 from src.core.preview_handler import PreviewHandler
 from src.utils.logger import get_logger
@@ -54,6 +54,8 @@ class PreviewWindow(QDialog):
 
         self.original_pixmap: Optional[QPixmap] = None
         self.current_scale: float = 1.0
+        self.current_rotation: int = 0  # 0, 90, 180, 270
+        self.is_fitted: bool = False
 
         self._init_ui()
 
@@ -82,9 +84,9 @@ class PreviewWindow(QDialog):
 
         layout.addWidget(header_widget)
 
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setAlignment(Qt.AlignCenter)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(False)
+        self.scroll_area.setAlignment(Qt.AlignCenter)
 
         self.preview_widget = QWidget()
         self.preview_layout = QVBoxLayout(self.preview_widget)
@@ -117,9 +119,9 @@ class PreviewWindow(QDialog):
         self.video_placeholder.hide()
         self.preview_layout.addWidget(self.video_placeholder)
 
-        scroll_area.setWidget(self.preview_widget)
+        self.scroll_area.setWidget(self.preview_widget)
 
-        layout.addWidget(scroll_area)
+        layout.addWidget(self.scroll_area)
 
         controls_widget = QWidget()
         controls_layout = QHBoxLayout(controls_widget)
@@ -136,6 +138,16 @@ class PreviewWindow(QDialog):
         reset_btn = QPushButton(language_manager.tr("preview.reset"))
         reset_btn.clicked.connect(self._reset_zoom)
         controls_layout.addWidget(reset_btn)
+
+        controls_layout.addStretch()
+
+        rotate_ccw_btn = QPushButton(language_manager.tr("preview.rotate_ccw"))
+        rotate_ccw_btn.clicked.connect(self._rotate_ccw)
+        controls_layout.addWidget(rotate_ccw_btn)
+
+        rotate_cw_btn = QPushButton(language_manager.tr("preview.rotate_cw"))
+        rotate_cw_btn.clicked.connect(self._rotate_cw)
+        controls_layout.addWidget(rotate_cw_btn)
 
         controls_layout.addStretch()
 
@@ -186,6 +198,10 @@ class PreviewWindow(QDialog):
                             child.setText(language_manager.tr("preview.fit_window"))
                         elif "Close" in text or "关闭" in text:
                             child.setText(language_manager.tr("preview.close"))
+                        elif "逆时针" in text or "CCW" in text:
+                            child.setText(language_manager.tr("preview.rotate_ccw"))
+                        elif "顺时针" in text or "CW" in text:
+                            child.setText(language_manager.tr("preview.rotate_cw"))
 
     def set_preview_handler(self, handler: PreviewHandler):
         """
@@ -251,9 +267,9 @@ class PreviewWindow(QDialog):
     def _preview_image(self):
         """Preview image file."""
         try:
-            image = self.preview_handler.open_image(self.local_file_path)
+            self.original_pixmap = QPixmap(self.local_file_path)
 
-            if not image:
+            if self.original_pixmap.isNull():
                 show_warning_dialog(
                     language_manager.tr("dialogs.error_title"),
                     language_manager.tr("preview.open_image_failed"),
@@ -261,26 +277,15 @@ class PreviewWindow(QDialog):
                 )
                 return
 
-            # Convert PIL Image to QPixmap
-            if image.mode == "RGBA":
-                qimage = QImage(
-                    image.tobytes(),
-                    image.size[0],
-                    image.size[1],
-                    QImage.Format_RGBA8888,
-                )
-            else:
-                qimage = QImage(
-                    image.tobytes(), image.size[0], image.size[1], QImage.Format_RGB888
-                )
-
-            self.original_pixmap = QPixmap.fromImage(qimage)
+            self.current_rotation = 0
+            self.current_scale = 1.0
+            self.is_fitted = False
 
             self.image_label.setPixmap(self.original_pixmap)
             self.image_label.show()
             self.video_placeholder.hide()
 
-            logger.info(f"Image preview loaded: {image.size}")
+            logger.info(f"Image preview loaded: {self.original_pixmap.size()}")
 
             self._fit_to_window()
 
@@ -331,6 +336,7 @@ class PreviewWindow(QDialog):
             return
 
         self.current_scale += 0.1
+        self.is_fitted = False
 
         self._apply_zoom()
 
@@ -344,14 +350,18 @@ class PreviewWindow(QDialog):
         if self.current_scale < 0.1:
             self.current_scale = 0.1
 
+        self.is_fitted = False
+
         self._apply_zoom()
 
     def _reset_zoom(self):
-        """Reset zoom to 100%."""
+        """Reset zoom to 100% and rotation to 0."""
         if not self.original_pixmap:
             return
 
         self.current_scale = 1.0
+        self.current_rotation = 0
+        self.is_fitted = False
 
         self._apply_zoom()
 
@@ -360,29 +370,71 @@ class PreviewWindow(QDialog):
         if not self.original_pixmap:
             return
 
-        window_size = self.size()
+        viewport_size = self.scroll_area.viewport().size()
 
-        pixmap_size = self.original_pixmap.size()
+        transformed_pixmap = self.original_pixmap
+        if self.current_rotation != 0:
+            transform = QTransform().rotate(self.current_rotation)
+            transformed_pixmap = self.original_pixmap.transformed(
+                transform, Qt.SmoothTransformation
+            )
 
-        width_scale = window_size.width() / pixmap_size.width()
-        height_scale = window_size.height() / pixmap_size.height()
+        pixmap_size = transformed_pixmap.size()
+
+        width_scale = viewport_size.width() / pixmap_size.width()
+        height_scale = viewport_size.height() / pixmap_size.height()
 
         self.current_scale = min(width_scale, height_scale) * 0.9
+        self.is_fitted = True
 
         self._apply_zoom()
 
-    def _apply_zoom(self):
-        """Apply current zoom scale."""
+    def _rotate_cw(self):
+        """Rotate image 90 degrees clockwise."""
         if not self.original_pixmap:
             return
 
-        new_size = self.original_pixmap.size() * self.current_scale
+        self.current_rotation = (self.current_rotation + 90) % 360
 
-        scaled_pixmap = self.original_pixmap.scaled(
+        if self.is_fitted:
+            self._fit_to_window()
+        else:
+            self._apply_zoom()
+
+    def _rotate_ccw(self):
+        """Rotate image 90 degrees counter-clockwise."""
+        if not self.original_pixmap:
+            return
+
+        self.current_rotation = (self.current_rotation - 90) % 360
+
+        if self.is_fitted:
+            self._fit_to_window()
+        else:
+            self._apply_zoom()
+
+    def _apply_zoom(self):
+        """Apply current zoom scale and rotation."""
+        if not self.original_pixmap:
+            return
+
+        transformed_pixmap = self.original_pixmap
+
+        if self.current_rotation != 0:
+            transform = QTransform().rotate(self.current_rotation)
+            transformed_pixmap = self.original_pixmap.transformed(
+                transform, Qt.SmoothTransformation
+            )
+
+        new_size = transformed_pixmap.size() * self.current_scale
+
+        scaled_pixmap = transformed_pixmap.scaled(
             new_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
         )
 
         self.image_label.setPixmap(scaled_pixmap)
+
+        self.preview_widget.adjustSize()
 
     def closeEvent(self, event):
         """Handle close event."""

@@ -179,6 +179,8 @@
     "zoom_in": "放大 (+)",
     "zoom_out": "缩小 (-)",
     "reset": "重置 (100%)",
+    "rotate_ccw": "逆时针旋转",
+    "rotate_cw": "顺时针旋转",
     "fit_window": "适应窗口",
     "close": "关闭",
     "handler_not_init": "预览处理器未初始化",

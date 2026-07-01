@@ -179,6 +179,8 @@
     "zoom_in": "Zoom In (+)",
     "zoom_out": "Zoom Out (-)",
     "reset": "Reset (100%)",
+    "rotate_ccw": "Rotate CCW",
+    "rotate_cw": "Rotate CW",
     "fit_window": "Fit Window",
     "close": "Close",
     "handler_not_init": "Preview handler not initialized",

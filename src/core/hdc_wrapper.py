@@ -99,8 +99,9 @@ def _ensure_ascii_path(path: str, is_dir: bool = False) -> tuple:
 def _ensure_ascii_remote_path(remote_path: str, is_dir: bool = False) -> tuple:
     """Generate an ASCII temporary remote path for HDC transfer.
 
-    If remote_path contains non-ASCII characters, return an ASCII temp path
-    and the original path for post-transfer rename.
+    If remote_path contains non-ASCII characters, move the file to a fully
+    ASCII path on the device (under /data/local/tmp/) so HDC can access it
+    on Windows without encoding issues.
 
     Returns:
         Tuple of (transfer_path, original_path, rename_needed)
@@ -108,17 +109,18 @@ def _ensure_ascii_remote_path(remote_path: str, is_dir: bool = False) -> tuple:
     if not _IS_WINDOWS or not _has_non_ascii(remote_path):
         return remote_path, remote_path, False
 
+    # Use /data/local/tmp/ as a staging area - guaranteed ASCII-only path
+    staging_dir = "/data/local/tmp"
+
     if is_dir:
         ascii_name = f"hdc_{uuid.uuid4().hex[:8]}"
-        parent = remote_path.rstrip("/").rsplit("/", 1)[0] or "/"
-        transfer_path = f"{parent}/{ascii_name}"
+        transfer_path = f"{staging_dir}/{ascii_name}"
     else:
-        parent = remote_path.rsplit("/", 1)[0] or "/"
         ext = Path(remote_path).suffix
         ascii_name = f"hdc_{uuid.uuid4().hex[:8]}{ext}"
-        transfer_path = f"{parent}/{ascii_name}"
+        transfer_path = f"{staging_dir}/{ascii_name}"
 
-    logger.debug(f"Using temp remote path: {transfer_path}")
+    logger.debug(f"Using temp remote path in staging dir: {transfer_path}")
     return transfer_path, remote_path, True
 
 
@@ -136,7 +138,7 @@ class HDCWrapper:
     devices using the HDC command-line tool.
     """
 
-    def __init__(self, hdc_path: Optional[str] = None, timeout: int = 30):
+    def __init__(self, hdc_path: Optional[str] = None, timeout: int = 120):
         """
         Initialize HDC wrapper.
 
